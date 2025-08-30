@@ -123,6 +123,7 @@
             background: var(--primary-color); color: white; border: none; padding: 12px 25px;
             border-radius: 25px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;
             text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+            margin: 5px; /* Added margin for better spacing on wrap */
         }
         .action-button:hover { background: var(--secondary-color); transform: translateY(-2px); }
         .download-button { background: linear-gradient(135deg, var(--warning-color), #f97316); }
@@ -175,8 +176,11 @@
                         <p>Simulado completo com questões de formação geral, componente específico e prática profissional.</p>
                     </div>
                 </div>
-                <button id="startButton" class="start-button">Iniciar Simulado</button>
-                <button id="historyButton" class="action-button history-button">📊 Ver Histórico</button>
+                <div class="action-buttons">
+                    <button id="startButton" class="start-button">Iniciar Simulado</button>
+                    <button id="historyButton" class="action-button history-button">📊 Ver Histórico</button>
+                    <a href="https://notebooklm.google.com/notebook/70c43d36-c741-44ea-9303-51470fbbd107" target="_blank" class="action-button notebooklm-button">🚀 NotebookLM Especialista</a>
+                </div>
             </div>
 
             <!-- Container do Quiz -->
@@ -529,7 +533,7 @@
             const flashcardsContent = document.getElementById('flashcardsContent');
             flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>';
             
-            const prompt = `Você é um especialista em educação. Crie flashcards de estudo a partir dos pontos em que o aluno teve mais dificuldades nesta prova de Psicologia. Use os seguintes enunciados de questões erradas como base: ${JSON.stringify(weakTopics)}. Inclua no mínimo 10 flashcards, organizados no formato:
+            const prompt = `Você é um especialista em educação. Crie flashcards de estudo a partir dos pontos em que o aluno teve mais dificuldades nesta prova de Psicologia. Use os seguintes enunciados de questões erradas ou não respondidas como base: ${JSON.stringify(weakTopics)}. Inclua no mínimo 10 flashcards, organizados no formato:
             - Frente: Pergunta ou conceito-chave
             - Verso: Explicação resumida e clara
             Priorize os temas em que o aluno errou ou apresentou baixo desempenho. Formate a resposta final em HTML, usando divs com as classes 'flashcard', 'flashcard-front' e 'flashcard-back'.`;
@@ -603,4 +607,4 @@
         });
     </script>
 </body>
-</html>```
+</html>
