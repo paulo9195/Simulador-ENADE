@@ -4,8 +4,7 @@
   "description": "Simulador para a prova do ENADE de Psicologia com análise de IA.",
   "main": "index.js",
   "scripts": {
-    "build": "echo 'Nenhum build necessário. Apenas arquivos estáticos.'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'Nenhum build necessário. Apenas arquivos estáticos.'"
   },
   "keywords": [
     "enade",
@@ -16,3 +15,4 @@
   "author": "Seu Nome",
   "license": "ISC"
 }
+
