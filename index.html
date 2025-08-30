@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENADE-Psi 2025 — Simulador com API Gemini</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 600px;
+            margin-bottom: 100px;
+        }
+
+        .exam-selection {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .exam-selection h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .exam-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .exam-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .exam-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .exam-card p {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .start-button.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .start-button:hover.active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .quiz-container {
+            display: none;
+            padding: 40px;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .quiz-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .timer {
+            background: var(--error-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            background: var(--border-color);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .question-type {
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+        }
+
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .options-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            background: #f0f9ff;
+        }
+
+        .option.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+        }
+
+        .option-letter {
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-letter {
+            background: var(--success-color);
+        }
+
+        .essay-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .essay-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .nav-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .nav-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .finish-button {
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+            font-weight: bold;
+            padding: 15px 30px;
+        }
+
+        .results-container {
+            display: none;
+            padding: 40px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .results-header h2 {
+            font-size: 2.5rem;
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-content {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .score-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .score-label {
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .download-button {
+            background: linear-gradient(135deg, var(--warning-color), #f97316);
+        }
+
+        .history-button {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .quiz-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .quiz-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .exam-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .question-text strong {
+            color: var(--primary-color);
+        }
+
+        .question-text br {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 ENADE-Psi 2025</h1>
+            <p>Simulador com API Gemini 2.0 Flash — Análise Real de IA</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Seleção de Prova -->
+            <div id="examSelection" class="exam-selection">
+                <h2>Escolha sua Prova</h2>
+                <p style="margin-bottom: 30px; color: var(--text-secondary);">
+                    Questões reais do ENADE com análise por IA do Gemini 2.0 Flash
+                </p>
+                
+                <div class="exam-grid">
+                    <div class="exam-card" data-exam="formacao_geral">
+                        <h3>📚 Formação Geral</h3>
+                        <p>Questões de conhecimentos gerais, incluindo questões discursivas sobre temas contemporâneos e sociais</p>
+                    </div>
+                    
+                    <div class="exam-card" data-exam="componente_especifico">
+                        <h3>🧠 Componente Específico</h3>
+                        <p>Questões específicas de Psicologia, incluindo teorias, métodos e práticas profissionais</p>
+                    </div>
+                    
+                    <div class="exam-card" data-exam="prova_completa">
+                        <h3>🎯 Prova Completa</h3>
+                        <p>Simulado completo com questões de formação geral e componente específico</p>
+                    </div>
+                </div>
+
+                <button id="startButton" class="start-button">Iniciar Simulado</button>
+                <button id="historyButton" class="action-button history-button">📊 Ver Histórico</button>
+            </div>
+
+            <!-- Container do Quiz -->
+            <div id="quizContainer" class="quiz-container">
+                <div class="quiz-header">
+                    <div class="quiz-info">
+                        <h2 id="examTitle">Prova ENADE-Psi</h2>
+                        <div id="timer" class="timer">40:00</div>
+                    </div>
+                    <div id="questionCounter">Questão 1 de 8</div>
+                </div>
+
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 12.5%"></div>
+                </div>
+
+                <div id="questionContainer" class="question-container">
+                    <!-- Questão será inserida aqui dinamicamente -->
+                </div>
+
+                <div class="navigation">
+                    <button id="prevButton" class="nav-button" disabled>⬅️ Anterior</button>
+                    <button id="nextButton" class="nav-button">Próximo ➡️</button>
+                    <button id="finishButton" class="nav-button finish-button" style="display: none;">🏁 Finalizar</button>
+                </div>
+            </div>
+
+            <!-- Container de Resultados -->
+            <div id="resultsContainer" class="results-container">
+                <div class="results-header">
+                    <h2>📊 Resultados do Simulado</h2>
+                    <p>Análise detalhada com Gemini 2.0 Flash</p>
+                </div>
+
+                <div id="loadingMessage" class="loading-message">
+                    <div class="spinner"></div>
+                    <p>Analisando suas respostas com Gemini 2.0 Flash...</p>
+                    <p style="font-size: 0.9rem; margin-top: 10px;">Isso pode levar alguns segundos.</p>
+                </div>
+
+                <div id="resultsContent" class="results-content" style="display: none;">
+                    <!-- Resultados serão inseridos aqui -->
+                </div>
+
+                <div class="action-buttons">
+                    <button id="downloadButton" class="action-button download-button">📄 Baixar PDF</button>
+                    <button id="newExamButton" class="action-button">🔄 Nova Prova</button>
+                    <button id="backToHomeButton" class="action-button">🏠 Voltar ao Início</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da API do Gemini 2.0 Flash
+        const GEMINI_API_KEY = "AIzaSyBlYYTCQemR5ffOmgE4M2HKsr63Ab6A8AE";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+        // Dados das questões reais extraídas dos PDFs
+        const examData = {
+            formacao_geral: {
+                title: "Formação Geral",
+                timeLimit: 40,
+                questions: [
+                    {
+                        id: "FG_D01",
+                        type: "discursiva",
+                        text: `<strong>QUESTÃO DISCURSIVA 01</strong><br><br>
+                        <strong>TEXTO 1</strong><br>
+                        Conforme relatório da organização de defesa dos direitos humanos Anistia Internacional, em 2017, entre 159 países, o Brasil apresentou o maior número de assassinatos de diversos grupos de pessoas, como jovens negros do sexo masculino, pessoas LGBTI+, defensoras e defensores de direitos humanos, grupos ligados à defesa da terra, populações tradicionais e policiais.<br><br>
+                        <strong>TEXTO 2</strong><br>
+                        Negra, mulher, mãe solteira, bissexual, moradora de favela, aluna da primeira turma do pré-vestibular comunitário da Maré, graduou-se em ciências sociais e realizou mestrado em administração pública. Sua vida fora construída na luta contra todas as estatísticas que fazem a morte, a prisão e a pobreza os destinos mais prováveis para as mulheres e os jovens pretos e pardos neste país.<br><br>
+                        <strong>TEXTO 3</strong><br>
+                        Logo após o assassinato da vereadora Marielle Franco, ocorrido no Rio de Janeiro, em 2018, os compartilhamentos nas redes sociais lançaram, em nível internacional, uma personagem política que, mesmo tendo sido uma das mais votadas na capital carioca, não tinha espaço privilegiado na agenda. Durante a primeira quinzena de março, a coleta de publicações em que se mencionava "Marielle Franco" totalizou mais de 3 milhões e meio de tweets.<br><br>
+                        <strong>A partir das informações apresentadas, redija um texto que aborde os seguintes aspectos:</strong><br>
+                        • o tensionamento entre a defesa dos Direitos Humanos realizada por Marielle Franco e a produção de notícias falsas após o assassinato da vereadora;<br>
+                        • os prejuízos da produção de notícias falsas para a sociedade democrática.`,
+                        format: "essay",
+                        themes: ["direitos humanos", "democracia", "fake news"],
+                        points: 10
+                    },
+                    {
+                        id: "FG_01",
+                        type: "multipla_escolha",
+                        text: `<strong>QUESTÃO 01</strong><br><br>
+                        <strong>OS CINCO PAÍSES COM MAIOR ÁREA PLANTADA COM TRANSGÊNICOS NO MUNDO</strong><br>
+                        (em milhões de hectares - mi/ha)<br><br>
+                        Considerando o infográfico apresentado, avalie as afirmações a seguir.<br><br>
+                        I. A distribuição da área plantada com transgênicos no mundo reflete o nível de desenvolvimento econômico dos países.<br>
+                        II. Os Estados Unidos da América possuem a maior área plantada de algodão transgênico no mundo.<br>
+                        III. O hemisfério norte concentra a maior área de produção transgênica.<br>
+                        IV. A área de produção de soja transgênica é maior no Brasil que na Argentina.<br><br>
+                        É correto apenas o que se afirma em`,
+                        options: [
+                            "I e II.",
+                            "I e IV.",
+                            "III e IV.",
+                            "I, II e III.",
+                            "II, III e IV."
+                        ],
+                        correct: 1,
+                        themes: ["agricultura", "transgênicos", "economia global"],
+                        explanation: "A resposta correta é B (I e IV). A distribuição reflete desenvolvimento econômico e o Brasil tem maior produção de soja transgênica que a Argentina."
+                    }
+                ]
+            },
+            componente_especifico: {
+                title: "Componente Específico",
+                timeLimit: 40,
+                questions: [
+                    {
+                        id: "CE_D03",
+                        type: "discursiva",
+                        text: `<strong>QUESTÃO DISCURSIVA 03</strong><br><br>
+                        Um jovem de 17 anos de idade foi levado pela mãe a uma Unidade Básica de Saúde (UBS), integrante do Sistema Único de Saúde (SUS). Na consulta médica, a mãe relatou que, nos últimos 12 meses, o jovem vinha bebendo excessivamente nos finais de semana, ocasiões em que, não raro, chegava em casa trazido pelos colegas. A mãe relatou que também fora chamada à escola onde o jovem estuda, em razão de suas frequentes ausências às atividades escolares, de problemas de relacionamento com colegas e professores, bem como do baixo desempenho escolar.<br><br>
+                        O médico, após o exame geral, encaminhou o jovem para os serviços especializados da Rede de Atenção Psicossocial (Raps), atestando transtorno por uso de substância psicoativa.<br><br>
+                        <strong>Considerando o caso apresentado, faça o que se pede nos itens a seguir:</strong><br>
+                        a) Caracterize a Raps e explique como o jovem pode ser tratado nessa rede. (valor: 6,0 pontos)<br>
+                        b) Cite dois serviços que integram a Raps e nos quais o jovem poderá ser acolhido. (valor: 4,0 pontos)`,
+                        format: "essay",
+                        themes: ["RAPS", "dependência química", "saúde mental"],
+                        points: 10
+                    },
+                    {
+                        id: "CE_12",
+                        type: "multipla_escolha",
+                        text: `<strong>QUESTÃO 12</strong><br><br>
+                        A psicologia, ao participar do desafio contemporâneo do diálogo inter, multi e transdisciplinar, tem sua definição precária de identidade dissolvida, revelando seu potencial de olhar para a complexidade de seu objeto. Tal situação tem o potencial de propiciar a construção de novas formas e práticas de se pensar o saber psicológico.<br><br>
+                        Considerando-se o texto, assinale a afirmação CORRETA.`,
+                        options: [
+                            "A identidade emergente da psicologia contemporânea supera as suas dicotomias epistemológicas, ao dialogar com outros saberes, referendando-se neles, pois esses saberes possuem uma maior segurança metodológica.",
+                            "A psicologia como ciência foi marcada pela tensão dos projetos de sua constituição, estabelecendo uma epistemologia única que se expressa em múltiplos métodos, que podem dialogar com outros saberes.",
+                            "A psicologia, ao participar do diálogo inter, multi e transdisciplinar, têm reconstruído as fronteiras de sua identidade, pois, no contato com saberes diversos, revela sua característica: a complexidade epistemológica e metodológica.",
+                            "O diálogo inter, multi e transdisciplinar dificulta a definição formal da psicologia como ciência, pois dissolve a identidade já bem constituída do saber psicológico, propondo uma identificação com outras formas do saber sobre o homem.",
+                            "O psicólogo tem sido convidado a realizar diálogos que o desafiam a construir uma linguagem inter, multi e transdisciplinar, centrada no discurso epistemológico das ciências exatas, como a física quântica, e das ciências biológicas, como a genética."
+                        ],
+                        correct: 2,
+                        themes: ["epistemologia", "interdisciplinaridade", "identidade da psicologia"],
+                        explanation: "A resposta correta é C. A psicologia reconstrói suas fronteiras identitárias através do diálogo interdisciplinar, revelando sua complexidade epistemológica e metodológica."
+                    }
+                ]
+            },
+            prova_completa: {
+                title: "Prova Completa",
+                timeLimit: 60,
+                questions: [] // Será preenchido dinamicamente
+            }
+        };
+
+        // Combinar questões para prova completa
+        examData.prova_completa.questions = [
+            ...examData.formacao_geral.questions,
+            ...examData.componente_especifico.questions
+        ];
+
+        // Estado do aplicativo
+        let currentExam = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let timeRemaining = 0;
+        let timerInterval = null;
+        let examStartTime = null;
+
+        // Elementos DOM
+        const examSelection = document.getElementById('examSelection');
+        const quizContainer = document.getElementById('quizContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const questionContainer = document.getElementById('questionContainer');
+        const examCards = document.querySelectorAll('.exam-card');
+        const startButton = document.getElementById('startButton');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const finishButton = document.getElementById('finishButton');
+        const timer = document.getElementById('timer');
+        const progressFill = document.getElementById('progressFill');
+        const questionCounter = document.getElementById('questionCounter');
+        const examTitle = document.getElementById('examTitle');
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            setupEventListeners();
+            loadUserHistory();
+            console.log('ENADE-Psi 2025 Simulador com Gemini 2.0 Flash carregado com sucesso!');
+        }
+
+        function setupEventListeners() {
+            // Seleção de prova
+            examCards.forEach(card => {
+                card.addEventListener('click', () => selectExam(card));
+            });
+
+            startButton.addEventListener('click', startExam);
+
+            // Navegação
+            prevButton.addEventListener('click', previousQuestion);
+            nextButton.addEventListener('click', nextQuestion);
+            finishButton.addEventListener('click', finishExam);
+
+            // Botões de ação
+            document.getElementById('downloadButton').addEventListener('click', downloadPDF);
+            document.getElementById('newExamButton').addEventListener('click', startNewExam);
+            document.getElementById('backToHomeButton').addEventListener('click', backToHome);
+            document.getElementById('historyButton').addEventListener('click', showHistory);
+        }
+
+        function selectExam(card) {
+            examCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
+            const examType = card.dataset.exam;
+            currentExam = examData[examType];
+            
+            startButton.classList.add('active');
+            startButton.textContent = `Iniciar ${currentExam.title}`;
+        }
+
+        function startExam() {
+            if (!currentExam) return;
+
+            examSelection.style.display = 'none';
+            quizContainer.style.display = 'block';
+            
+            examTitle.textContent = currentExam.title;
+            timeRemaining = currentExam.timeLimit * 60;
+            examStartTime = new Date();
+            
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            startTimer();
+            renderQuestion();
+            updateProgress();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function renderQuestion() {
+            const question = currentExam.questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === currentExam.questions.length - 1;
+            
+            questionCounter.textContent = `Questão ${currentQuestionIndex + 1} de ${currentExam.questions.length}`;
+            
+            let questionHTML = `
+                <div class="question-header">
+                    <span class="question-number">Questão ${currentQuestionIndex + 1}</span>
+                    <span class="question-type">${question.type === 'multipla_escolha' ? 'Múltipla Escolha' : 'Discursiva'}</span>
+                </div>
+                <div class="question-text">${question.text}</div>
+            `;
+
+            if (question.type === 'multipla_escolha') {
+                questionHTML += '<div class="options-container">';
+                question.options.forEach((option, index) => {
+                    const letter = String.fromCharCode(65 + index);
+                    const isSelected = userAnswers[question.id] === letter;
+                    questionHTML += `
+                        <div class="option ${isSelected ? 'selected' : ''}" data-option="${letter}">
+                            <div class="option-letter">${letter}</div>
+                            <div class="option-text">${option}</div>
+                        </div>
+                    `;
+                });
+                questionHTML += '</div>';
+            } else {
+                const savedAnswer = userAnswers[question.id] || '';
+                questionHTML += `
+                    <textarea class="essay-textarea" 
+                              placeholder="Digite sua resposta aqui..." 
+                              data-question="${question.id}">${savedAnswer}</textarea>
+                `;
+            }
+
+            questionContainer.innerHTML = questionHTML;
+            questionContainer.classList.add('fade-in');
+
+            // Event listeners para opções
+            if (question.type === 'multipla_escolha') {
+                document.querySelectorAll('.option').forEach(option => {
+                    option.addEventListener('click', () => selectOption(option));
+                });
+            } else {
+                const textarea = document.querySelector('.essay-textarea');
+                textarea.addEventListener('input', (e) => {
+                    userAnswers[question.id] = e.target.value;
+                });
+            }
+
+            // Atualizar botões de navegação
+            prevButton.disabled = currentQuestionIndex === 0;
+            
+            if (isLastQuestion) {
+                nextButton.style.display = 'none';
+                finishButton.style.display = 'inline-block';
+            } else {
+                nextButton.style.display = 'inline-block';
+                finishButton.style.display = 'none';
+            }
+        }
+
+        function selectOption(optionElement) {
+            const questionId = currentExam.questions[currentQuestionIndex].id;
+            const selectedOption = optionElement.dataset.option;
+            
+            // Remove seleção anterior
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Adiciona nova seleção
+            optionElement.classList.add('selected');
+            
+            // Salva resposta
+            userAnswers[questionId] = selectedOption;
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+                updateProgress();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentExam.questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / currentExam.questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        function finishExam() {
+            clearInterval(timerInterval);
+            
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            // Salvar resultado no histórico
+            saveExamResult();
+            
+            // Processar resultados com IA
+            processResultsWithGemini();
+        }
+
+        async function processResultsWithGemini() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            loadingMessage.style.display = 'block';
+            resultsContent.style.display = 'none';
+
+            try {
+                // Preparar dados para análise
+                const examDataForAnalysis = {
+                    examType: currentExam.title,
+                    questions: currentExam.questions,
+                    answers: userAnswers,
+                    timeSpent: Math.round((new Date() - examStartTime) / 1000 / 60),
+                    totalQuestions: currentExam.questions.length
+                };
+
+                // Calcular estatísticas básicas
+                const stats = calculateBasicStats(examDataForAnalysis);
+                
+                // Chamar a API do Gemini 2.0 Flash para análise
+                const aiAnalysis = await getGeminiAnalysis(examDataForAnalysis, stats);
+                
+                // Exibir resultados
+                displayResults(stats, aiAnalysis);
+                
+            } catch (error) {
+                console.error('Erro ao processar resultados com a API do Gemini:', error);
+                displayErrorResults();
+            }
+        }
+
+        function calculateBasicStats(examDataForAnalysis) {
+            let correctAnswers = 0;
+            let totalMultipleChoice = 0;
+            let essayQuestions = 0;
+
+            examDataForAnalysis.questions.forEach(question => {
+                if (question.type === 'multipla_escolha') {
+                    totalMultipleChoice++;
+                    const userAnswer = examDataForAnalysis.answers[question.id];
+                    const correctAnswer = String.fromCharCode(65 + question.correct);
+                    if (userAnswer === correctAnswer) {
+                        correctAnswers++;
+                    }
+                } else {
+                    essayQuestions++;
+                }
+            });
+
+            const score = totalMultipleChoice > 0 ? (correctAnswers / totalMultipleChoice) * 100 : 0;
+
+            return {
+                score: Math.round(score),
+                correctAnswers,
+                totalMultipleChoice,
+                essayQuestions,
+                timeSpent: examDataForAnalysis.timeSpent,
+                totalQuestions: examDataForAnalysis.totalQuestions
+            };
+        }
+
+        async function getGeminiAnalysis(examDataForAnalysis, stats) {
+            const prompt = `Você é um especialista em ENADE de Psicologia e um analista de desempenho. Analise o seguinte resultado de simulado:
+
+Tipo de Prova: ${examDataForAnalysis.examType}
+Tempo Gasto: ${stats.timeSpent} minutos
+Questões Objetivas: ${stats.correctAnswers} de ${stats.totalMultipleChoice} corretas (${stats.score}% de aproveitamento)
+Questões Discursivas Respondidas: ${stats.essayQuestions}
+
+Respostas do Usuário:
+${JSON.stringify(examDataForAnalysis.answers, null, 2)}
+
+Questões da Prova:
+${JSON.stringify(examDataForAnalysis.questions.map(q => ({ 
+    id: q.id, 
+    type: q.type, 
+    themes: q.themes,
+    correct: q.correct 
+})), null, 2)}
+
+Com base nestes dados, forneça uma análise detalhada do desempenho do usuário, incluindo:
+1. Um diagnóstico por tema (identificando pontos fortes e fracos com base nos temas das questões).
+2. Um plano de estudo personalizado com base no desempenho.
+3. Flashcards importantes relacionados aos temas das questões.
+4. Uma avaliação da qualidade das respostas discursivas (se houver), mesmo que breve, e sugestões de melhoria.
+
+Formate a resposta em HTML, utilizando divs com estilos inline para manter a consistência visual. Use cores como #6366f1 para títulos, #10b981 para sucessos, #f59e0b para avisos. Inclua os títulos e subtítulos como h3 e h4, e use tags como <strong>, <em>, <br> para formatação.`;
+
+            const requestBody = {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: prompt
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-goog-api-key': GEMINI_API_KEY
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro da API: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                if (data.candidates && data.candidates.length > 0) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('Resposta da API não contém candidatos válidos.');
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API do Gemini:', error);
+                // Fallback para análise simulada em caso de erro da API
+                return simulateAIAnalysis(examDataForAnalysis, stats);
+            }
+        }
+
+        async function simulateAIAnalysis(examDataForAnalysis, stats) {
+            // Análise simulada baseada no desempenho
+            let performance = 'Regular';
+            if (stats.score >= 80) performance = 'Excelente';
+            else if (stats.score >= 70) performance = 'Bom';
+            else if (stats.score >= 60) performance = 'Regular';
+            else performance = 'Precisa Melhorar';
+
+            return `
+                <div style="margin-top: 20px;">
+                    <h3 style="color: #6366f1; margin-bottom: 20px;">🎯 Análise Detalhada do Desempenho (Fallback)</h3>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="color: #8b5cf6; margin-bottom: 15px;">📊 Diagnóstico por Tema</h4>
+                        <div style="display: grid; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 5px;">
+                                <span>Desempenho Geral:</span>
+                                <span style="font-weight: bold; color: ${stats.score >= 70 ? '#10b981' : '#f59e0b'};">${performance}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 5px;">
+                                <span>Questões Objetivas:</span>
+                                <span style="font-weight: bold;">${stats.correctAnswers}/${stats.totalMultipleChoice} (${stats.score}%)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 5px;">
+                                <span>Questões Discursivas:</span>
+                                <span style="font-weight: bold;">${stats.essayQuestions} respondidas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="color: #8b5cf6; margin-bottom: 15px;">📚 Plano de Estudo Personalizado</h4>
+                        <div style="line-height: 1.8;">
+                            <strong>Semana 1-2:</strong> Revisão dos conceitos fundamentais de Psicologia<br>
+                            <strong>Semana 3:</strong> Foco em questões discursivas e redação científica<br>
+                            <strong>Semana 4:</strong> Simulados e revisão final<br><br>
+                            <em>Dica:</em> Pratique mais questões do tipo que teve menor aproveitamento.
+                        </div>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 10px;">
+                        <h4 style="color: #8b5cf6; margin-bottom: 15px;">🎴 Flashcards Importantes</h4>
+                        <div style="display: grid; gap: 10px;">
+                            <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                                <strong>Epistemologia da Psicologia:</strong> Estudo dos fundamentos, métodos e validade do conhecimento psicológico.
+                            </div>
+                            <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                                <strong>RAPS:</strong> Rede de Atenção Psicossocial - conjunto de serviços de saúde mental no SUS.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayResults(stats, aiAnalysis) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            loadingMessage.style.display = 'none';
+            resultsContent.style.display = 'block';
+
+            resultsContent.innerHTML = `
+                <div class="score-summary">
+                    <div class="score-card">
+                        <div class="score-value">${stats.score}%</div>
+                        <div class="score-label">Aproveitamento</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">${stats.correctAnswers}/${stats.totalMultipleChoice}</div>
+                        <div class="score-label">Acertos</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">${stats.essayQuestions}</div>
+                        <div class="score-label">Discursivas</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">${stats.timeSpent}min</div>
+                        <div class="score-label">Tempo Gasto</div>
+                    </div>
+                </div>
+                
+                ${aiAnalysis}
+            `;
+        }
+
+        function displayErrorResults() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            loadingMessage.style.display = 'none';
+            resultsContent.style.display = 'block';
+
+            resultsContent.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <h3 style="color: #ef4444; margin-bottom: 20px;">⚠️ Erro ao Processar Resultados</h3>
+                    <p>Não foi possível gerar a análise detalhada no momento.</p>
+                    <p>Seus resultados foram salvos e você pode tentar novamente mais tarde.</p>
+                </div>
+            `;
+        }
+
+        function saveExamResult() {
+            const result = {
+                id: Date.now(),
+                examType: currentExam.title,
+                date: new Date().toISOString(),
+                answers: userAnswers,
+                timeSpent: Math.round((new Date() - examStartTime) / 1000 / 60),
+                totalQuestions: currentExam.questions.length
+            };
+
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            history.push(result);
+            localStorage.setItem('enade_history', JSON.stringify(history));
+        }
+
+        function loadUserHistory() {
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            console.log(`Histórico carregado: ${history.length} simulados realizados`);
+        }
+
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            
+            if (history.length === 0) {
+                alert('Nenhum simulado realizado ainda.');
+                return;
+            }
+
+            alert(`Histórico: ${history.length} simulados realizados`);
+        }
+
+        function downloadPDF() {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (!resultsContent || resultsContent.style.display === 'none') {
+                alert('⚠️ Nenhum resultado disponível para download.');
+                return;
+            }
+
+            // Criar conteúdo HTML para o relatório
+            const reportHTML = `
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Relatório ENADE-Psi 2025</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: 40px; 
+                            line-height: 1.6; 
+                            color: #333;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 40px; 
+                            border-bottom: 2px solid #6366f1;
+                            padding-bottom: 20px;
+                        }
+                        .header h1 { 
+                            color: #6366f1; 
+                            margin-bottom: 10px; 
+                        }
+                        .content { 
+                            margin-top: 30px; 
+                        }
+                        .footer { 
+                            margin-top: 50px; 
+                            text-align: center; 
+                            font-size: 0.9rem; 
+                            color: #6b7280; 
+                            border-top: 1px solid #e5e7eb; 
+                            padding-top: 20px; 
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 Relatório ENADE-Psi 2025</h1>
+                        <h2>Análise com Gemini 2.0 Flash</h2>
+                        <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                        <p><strong>Prova:</strong> ${currentExam ? currentExam.title : 'N/A'}</p>
+                    </div>
+                    
+                    <div class="content">
+                        ${resultsContent.innerHTML}
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Relatório gerado automaticamente pelo ENADE-Psi 2025</p>
+                        <p>Análise realizada com Gemini 2.0 Flash</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Criar e baixar o arquivo
+            const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio-enade-psi-${new Date().toISOString().split('T')[0]}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('📄 Relatório baixado com sucesso!');
+        }
+
+        function startNewExam() {
+            // Reset do estado
+            currentExam = null;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            clearInterval(timerInterval);
+            
+            // Voltar para seleção
+            resultsContainer.style.display = 'none';
+            examSelection.style.display = 'block';
+            
+            // Reset da seleção
+            examCards.forEach(card => card.classList.remove('selected'));
+            startButton.classList.remove('active');
+            startButton.textContent = 'Iniciar Simulado';
+        }
+
+        function backToHome() {
+            startNewExam();
+        }
+
+        // Inicializar quando a página carregar
+        window.addEventListener('load', initializeApp);
+
+        // Prevenir fechamento acidental durante o exame
+        window.addEventListener('beforeunload', function(e) {
+            if (quizContainer.style.display === 'block') {
+                e.preventDefault();
+                e.returnValue = '';
+                return 'Você tem certeza que deseja sair? Seu progresso será perdido.';
+            }
+        });
+    </script>
+</body>
+</html>
+
