@@ -1,0 +1,18 @@
+{
+  "name": "enade-psi-simulator",
+  "version": "1.0.0",
+  "description": "Simulador para a prova do ENADE de Psicologia com análise de IA.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "enade",
+    "psicologia",
+    "simulador",
+    "gemini"
+  ],
+  "author": "Seu Nome",
+  "license": "ISC"
+}
+

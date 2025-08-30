@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENADE-Psi 2025 — Simulador com Questões Reais</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ... (Toda a estrutura HTML do body original permanece a mesma) ... -->
+
+    <!-- DENTRO de #questionContainer, adicione o botão de dica -->
+    <div id="questionContainer" class="question-container">
+        <!-- O conteúdo da questão será inserido aqui dinamicamente -->
+        <!-- ADICIONE O BOTÃO DE DICA AQUI, no final do container -->
+        <div class="hint-section">
+            <button id="hintButton" class="action-button hint-button">💡 Obter uma Dica</button>
+        </div>
+    </div>
+
+    <!-- Modal para a Dica (Chat) -->
+    <div id="hintModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💡 Dica do Especialista</h3>
+                <button id="hintClose" class="modal-close">×</button>
+            </div>
+            <div id="hintContent" class="modal-body">
+                <!-- A dica da IA aparecerá aqui -->
+                <div class="spinner"></div>
+                <p>Analisando a questão para gerar sua dica...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ... (O resto da estrutura HTML permanece a mesma) ... -->
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+    
+    <footer>
+      <!-- ... (Conteúdo do footer) ... -->
+    </footer>
+</body>
+</html>
+
