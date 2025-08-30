@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENADE-Psi 2025 — Simulador com API Gemini</title>
+    <title>ENADE-Psi 2025 — Plataforma de Estudos com IA</title>
     <style>
         :root {
             --primary-color: #6366f1;
@@ -18,13 +18,7 @@
             --bg-secondary: #f9fafb;
             --border-color: #e5e7eb;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -32,565 +26,157 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; color: white; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
         .main-content {
             background: var(--bg-primary);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
             min-height: 600px;
-            margin-bottom: 100px;
-        }
-        
-        /* Estilos para Seleção de Prova e Histórico */
-        .exam-selection, .history-container {
-            padding: 40px;
-            text-align: center;
-        }
-
-        .exam-selection h2, .history-container h2 {
-            font-size: 2rem;
-            margin-bottom: 30px;
-            color: var(--text-primary);
-        }
-
-        .exam-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .exam-card {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 15px;
-            padding: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            text-align: left;
-        }
-
-        .exam-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .exam-card.selected {
-            border-color: var(--primary-color);
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-
-        .exam-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-        }
-
-        .exam-card p {
-            font-size: 0.95rem;
-            opacity: 0.8;
-        }
-
-        .start-button {
-            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .start-button.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .start-button:hover.active {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        
-        .api-key-section {
-            margin-top: 40px;
-            padding: 20px;
-            background: var(--bg-secondary);
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .api-key-section input {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-right: 10px;
-            width: 60%;
-        }
-
-        .api-key-section button {
-            padding: 10px 15px;
-        }
-        
-        /* Estilos do Quiz */
-        .quiz-container {
-            display: none;
-            padding: 40px;
-        }
-
-        .quiz-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .quiz-info {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .timer {
-            background: var(--error-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .progress-bar {
-            background: var(--border-color);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .question-container {
-            background: var(--bg-secondary);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .question-number {
-            background: var(--primary-color);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-        .question-type {
-            background: var(--accent-color);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 25px;
-            color: var(--text-primary);
-        }
-
-        .question-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-            margin: 20px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .ai-hint-button {
-            background: linear-gradient(135deg, var(--warning-color), #f97316);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: auto;
-        }
-
-        .ai-hint-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .ai-hint-box {
-            background: #fffbe6;
-            border: 1px solid #fde68a;
-            border-left: 5px solid var(--warning-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            text-align: left;
-        }
-
-        .options-container {
-            display: grid;
-            gap: 15px;
-        }
-
-        .option {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            text-align: left;
-        }
-
-        .option:hover {
-            border-color: var(--primary-color);
-            background: #f0f9ff;
-        }
-
-        .option.selected {
-            border-color: var(--primary-color);
-            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
-        }
-
-        .option-letter {
-            background: var(--primary-color);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .option.selected .option-letter {
-            background: var(--success-color);
-        }
-
-        .essay-textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .essay-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 30px;
-        }
-
-        .nav-button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .nav-button:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-
-        .nav-button:disabled {
-            background: var(--text-secondary);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .finish-button {
-            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
-            font-weight: bold;
-            padding: 15px 30px;
-        }
-        
-        /* Estilos de Resultados e Histórico */
-        .results-container {
-            display: none;
-            padding: 40px;
-        }
-
-        .results-header {
-            text-align: center;
             margin-bottom: 40px;
         }
-
-        .results-header h2 {
-            font-size: 2.5rem;
-            color: var(--success-color);
-            margin-bottom: 10px;
+        .exam-selection, .history-container { padding: 40px; text-align: center; }
+        .exam-selection h2, .history-container h2 { font-size: 2rem; margin-bottom: 30px; color: var(--text-primary); }
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .exam-card {
+            background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 15px;
+            padding: 25px; cursor: pointer; transition: all 0.3s ease; text-align: left;
         }
-
-        .loading-message {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2rem;
-            color: var(--text-secondary);
+        .exam-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .exam-card.selected { border-color: var(--primary-color); background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+        .exam-card h3 { font-size: 1.3rem; margin-bottom: 15px; }
+        .exam-card p { font-size: 0.95rem; opacity: 0.8; }
+        .start-button {
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color)); color: white; border: none;
+            padding: 15px 40px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+            margin: 10px; opacity: 0.5; pointer-events: none;
         }
-
+        .start-button.active { opacity: 1; pointer-events: auto; }
+        .start-button:hover.active { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .quiz-container { display: none; padding: 40px; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+        .quiz-info { display: flex; gap: 30px; align-items: center; }
+        .timer { background: var(--error-color); color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; font-size: 1.1rem; }
+        .progress-bar { background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 30px; }
+        .progress-fill { background: linear-gradient(90deg, var(--primary-color), var(--accent-color)); height: 100%; transition: width 0.3s ease; }
+        .question-container { background: var(--bg-secondary); border-radius: 15px; padding: 30px; margin-bottom: 30px; }
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .question-number { background: var(--primary-color); color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; }
+        .question-type { background: var(--accent-color); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.9rem; }
+        .question-text { font-size: 1.1rem; line-height: 1.8; margin-bottom: 25px; color: var(--text-primary); }
+        .ai-hint-button {
+            background: linear-gradient(135deg, var(--warning-color), #f97316); color: white; border: none;
+            padding: 8px 15px; font-size: 0.9rem; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; margin-left: auto;
+        }
+        .ai-hint-button:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .ai-hint-box {
+            background: #fffbe6; border: 1px solid #fde68a; border-left: 5px solid var(--warning-color);
+            border-radius: 8px; padding: 20px; margin-top: 20px; font-size: 0.95rem; color: var(--text-secondary); text-align: left;
+        }
+        .options-container { display: grid; gap: 15px; }
+        .option {
+            background: white; border: 2px solid var(--border-color); border-radius: 10px; padding: 15px 20px;
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; text-align: left;
+        }
+        .option:hover { border-color: var(--primary-color); background: #f0f9ff; }
+        .option.selected { border-color: var(--primary-color); background: linear-gradient(135deg, #dbeafe, #e0e7ff); }
+        .option-letter {
+            background: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0;
+        }
+        .option.selected .option-letter { background: var(--success-color); }
+        .essay-textarea {
+            width: 100%; min-height: 200px; padding: 20px; border: 2px solid var(--border-color);
+            border-radius: 10px; font-size: 1rem; line-height: 1.6; resize: vertical; font-family: inherit;
+        }
+        .essay-textarea:focus { outline: none; border-color: var(--primary-color); }
+        .navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+        .nav-button {
+            background: var(--primary-color); color: white; border: none; padding: 12px 25px;
+            border-radius: 25px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;
+        }
+        .nav-button:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        .nav-button:disabled { background: var(--text-secondary); cursor: not-allowed; transform: none; }
+        .finish-button { background: linear-gradient(135deg, var(--success-color), var(--accent-color)); font-weight: bold; padding: 15px 30px; }
+        .results-container { display: none; padding: 40px; }
+        .results-header { text-align: center; margin-bottom: 40px; }
+        .results-header h2 { font-size: 2.5rem; color: var(--success-color); margin-bottom: 10px; }
+        .loading-message { text-align: center; padding: 40px; font-size: 1.2rem; color: var(--text-secondary); }
         .spinner {
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results-content {
-            background: var(--bg-secondary);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .score-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .score-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .score-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .score-label {
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-        
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
-        
-        .history-table th, .history-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .history-table th {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .results-content, .flashcards-content { background: var(--bg-secondary); border-radius: 15px; padding: 30px; margin-bottom: 30px; text-align: left; }
+        .score-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .score-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .score-value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        .score-label { color: var(--text-secondary); margin-top: 5px; }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .history-table th, .history-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .history-table th { background: var(--bg-secondary); color: var(--text-primary); }
+        .action-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
         .action-button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            background: var(--primary-color); color: white; border: none; padding: 12px 25px;
+            border-radius: 25px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
         }
-
-        .action-button:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-
-        .download-button {
-            background: linear-gradient(135deg, var(--warning-color), #f97316);
-        }
-
-        .history-button, .notebooklm-button {
-            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
-        }
-
+        .action-button:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        .download-button { background: linear-gradient(135deg, var(--warning-color), #f97316); }
+        .history-button, .notebooklm-button, .flashcard-button { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
+        .flashcards-container { margin-top: 30px; }
+        .flashcard { background: white; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 15px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .flashcard-front, .flashcard-back { padding-bottom: 10px; }
+        .flashcard-front { font-weight: bold; color: var(--primary-color); border-bottom: 1px dashed var(--border-color); margin-bottom: 10px; }
+        footer { text-align: center; padding: 20px; color: white; font-size: 0.9rem; opacity: 0.8; }
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .quiz-header, .quiz-info, .navigation, .action-buttons {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .exam-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-button {
-                width: 100%;
-                max-width: 300px;
-                justify-content: center;
-            }
+            .container { padding: 10px; }
+            .header h1 { font-size: 2rem; }
+            .quiz-header, .quiz-info, .navigation, .action-buttons { flex-direction: column; gap: 15px; }
+            .exam-grid { grid-template-columns: 1fr; }
+            .action-button { width: 100%; max-width: 300px; justify-content: center; }
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .question-text strong {
-            color: var(--primary-color);
-        }
-
-        .question-text br {
-            margin-bottom: 10px;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .question-text strong { color: var(--primary-color); }
+        .question-text br { margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🧠 ENADE-Psi 2025</h1>
-            <p>Simulador com API Gemini 2.0 Flash — Análise Real de IA</p>
+            <p>Plataforma de Estudos Inteligente com IA</p>
         </div>
 
         <div class="main-content">
             <!-- Seleção de Prova -->
             <div id="examSelection" class="exam-selection">
                 <h2>Escolha sua Prova</h2>
-                <p style="margin-bottom: 30px; color: var(--text-secondary);">
-                    Questões reais do ENADE com análise por IA do Gemini 2.0 Flash
-                </p>
-                
+                <p style="margin-bottom: 30px; color: var(--text-secondary);">Questões do ENADE com dicas e análise por IA</p>
                 <div class="exam-grid">
                     <div class="exam-card" data-exam="formacao_geral">
                         <h3>📚 Formação Geral</h3>
                         <p>Questões de conhecimentos gerais, direitos humanos, realidade brasileira e mundial e temas contemporâneos.</p>
                     </div>
-                    
                     <div class="exam-card" data-exam="componente_especifico">
                         <h3>🧠 Componente Específico</h3>
                         <p>Questões focadas nas grandes áreas da Psicologia: teorias, métodos, psicopatologia e avaliação.</p>
                     </div>
-                    
                     <div class="exam-card" data-exam="pratica_profissional">
                         <h3>💼 Prática Profissional</h3>
                         <p>Estudos de caso e situações-problema sobre atuação em saúde, educação, organizações e ética profissional.</p>
                     </div>
-                    
                     <div class="exam-card" data-exam="prova_completa">
                         <h3>🎯 Prova Completa</h3>
                         <p>Simulado completo com questões de formação geral, componente específico e prática profissional.</p>
                     </div>
                 </div>
-
                 <button id="startButton" class="start-button">Iniciar Simulado</button>
                 <button id="historyButton" class="action-button history-button">📊 Ver Histórico</button>
-
-                <div class="api-key-section">
-                    <h4>Configurar Chave da API Gemini</h4>
-                    <input type="password" id="apiKeyInput" placeholder="Cole sua chave da API aqui">
-                    <button id="saveApiKeyButton" class="action-button">Salvar</button>
-                </div>
             </div>
 
             <!-- Container do Quiz -->
@@ -598,19 +184,12 @@
                 <div class="quiz-header">
                     <div class="quiz-info">
                         <h2 id="examTitle">Prova ENADE-Psi</h2>
-                        <div id="timer" class="timer">40:00</div>
+                        <div id="timer" class="timer">00:00</div>
                     </div>
                     <div id="questionCounter">Questão 1 de 18</div>
                 </div>
-
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill" style="width: 5.5%"></div>
-                </div>
-
-                <div id="questionContainer" class="question-container">
-                    <!-- Questão será inserida aqui dinamicamente -->
-                </div>
-
+                <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width: 5.5%"></div></div>
+                <div id="questionContainer" class="question-container"></div>
                 <div class="navigation">
                     <button id="prevButton" class="nav-button" disabled>⬅️ Anterior</button>
                     <button id="nextButton" class="nav-button">Próximo ➡️</button>
@@ -622,22 +201,23 @@
             <div id="resultsContainer" class="results-container">
                 <div class="results-header">
                     <h2>📊 Resultados do Simulado</h2>
-                    <p>Análise detalhada com Gemini 2.0 Flash</p>
+                    <p>Análise detalhada e personalizada com IA</p>
                 </div>
-
                 <div id="loadingMessage" class="loading-message">
                     <div class="spinner"></div>
-                    <p>Analisando suas respostas com Gemini 2.0 Flash...</p>
+                    <p>Analisando suas respostas com a IA...</p>
                     <p style="font-size: 0.9rem; margin-top: 10px;">Isso pode levar alguns segundos.</p>
                 </div>
-
-                <div id="resultsContent" class="results-content" style="display: none;">
-                    <!-- Resultados serão inseridos aqui -->
+                <div id="resultsContent" class="results-content" style="display: none;"></div>
+                <div id="flashcardsContainer" class="flashcards-container" style="display: none;">
+                    <h2 style="text-align:center; margin-bottom: 20px;">📇 Flashcards de Estudo Personalizados</h2>
+                    <div id="flashcardsContent" class="flashcards-content"></div>
                 </div>
-
                 <div class="action-buttons">
-                    <a href="https://notebooklm.google.com/" target="_blank" id="notebooklmButton" class="action-button notebooklm-button">🚀 Ir para NotebookLM Especialista</a>
-                    <button id="downloadButton" class="action-button download-button">📄 Baixar PDF</button>
+                    <a href="https://notebooklm.google.com/notebook/70c43d36-c741-44ea-9303-51470fbbd107" target="_blank" class="action-button notebooklm-button">🚀 Aprofundar no NotebookLM Especialista</a>
+                    <button id="flashcardButton" class="action-button flashcard-button" style="display: none;">📇 Gerar Flashcards de Estudo</button>
+                    <button id="downloadAnalysisButton" class="action-button download-button" style="display: none;">📄 Baixar Análise em PDF</button>
+                    <button id="downloadFlashcardsButton" class="action-button download-button" style="display: none;">📇 Baixar Flashcards em PDF</button>
                     <button id="newExamButton" class="action-button">🔄 Nova Prova</button>
                     <button id="backToHomeButton" class="action-button">🏠 Voltar ao Início</button>
                 </div>
@@ -646,557 +226,381 @@
             <!-- Container do Histórico -->
             <div id="historyContainer" class="history-container" style="display: none;">
                 <h2>Histórico de Desempenho</h2>
-                <div id="historyContent">
-                    <!-- Tabela de histórico será inserida aqui -->
-                </div>
+                <div id="historyContent"></div>
                 <div class="action-buttons">
                     <button id="backToHomeFromHistory" class="action-button">🏠 Voltar ao Início</button>
                 </div>
             </div>
         </div>
     </div>
+    <footer>
+        <p>© 2025 ENADE-Psi. Todos os direitos reservados. Paulo Henrique Moreira Gonçalves. | Última atualização: 30/08/2025</p>
+    </footer>
 
     <script>
         // --- CONFIGURAÇÃO DA API E CHAVE ---
-        
-        // Função para atualizar a chave da API no localStorage
-        function updateAPIKey(newKey) {
-            if (newKey && newKey.trim() !== "") {
-                localStorage.setItem("GEMINI_API_KEY", newKey);
-                alert("Chave da API atualizada com sucesso!");
-                return newKey;
-            }
-            return null;
-        }
-
-        // Carrega a chave do localStorage ou usa uma chave padrão de placeholder
-        let GEMINI_API_KEY = localStorage.getItem("GEMINI_API_KEY") || "COLE_SUA_CHAVE_AQUI";
-        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        const GEMINI_API_KEY = "AIzaSyBlYYTCQemR5ffOmgE4M2HKsr63Ab6A8AE";
+        const GEMINI_FLASH_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        const GEMINI_PRO_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent";
 
         // --- BANCO DE QUESTÕES ---
         const examData = {
             formacao_geral: {
-                title: "Formação Geral",
-                timeLimit: 60,
+                title: "Formação Geral", timeLimit: 60,
                 questions: [
-                    // DISCURSIVAS
                     { id: "FG_D1", type: "discursiva", text: `<strong>TEXTO 1</strong><br>O Relatório Mundial sobre Desigualdade de Gênero 2023 do Fórum Econômico Mundial aponta que, no ritmo atual, serão necessários 131 anos para atingir a paridade total de gênero. <strong>TEXTO 2</strong><br>No Brasil, a Lei Maria da Penha (Lei nº 11.340/2006) é um marco na luta contra a violência doméstica e familiar, mas os índices de feminicídio permanecem alarmantes.<br><br>Com base nos textos e em seus conhecimentos, redija um texto dissertativo sobre a persistência da desigualdade de gênero na sociedade brasileira, abordando: a) a relação entre desigualdade estrutural e violência contra a mulher; b) o papel da educação na desconstrução de estereótipos de gênero.` },
-                    { id: "FG_D2", type: "discursiva", text: `A disseminação de notícias falsas (fake news) tornou-se um dos maiores desafios para as democracias contemporâneas, influenciando processos eleitorais e a saúde pública. Analise o fenômeno das fake news, considerando: a) os mecanismos psicossociais que contribuem para sua propagação (viés de confirmação, bolhas informacionais); b) as consequências para o debate público e a confiança nas instituições.` },
-                    { id: "FG_D3", type: "discursiva", text: `O Brasil possui uma das maiores biodiversidades do planeta, mas enfrenta graves desafios ambientais, como o desmatamento na Amazônia e a crise hídrica. Discorra sobre a importância do desenvolvimento sustentável, explicando: a) o conceito de sustentabilidade, articulando as dimensões ambiental, social e econômica; b) duas ações que podem ser adotadas pelo governo ou pela sociedade civil para promover a conservação ambiental.` },
-                    // MÚLTIPLA ESCOLHA
-                    { id: "FG_M1", type: "multipla_escolha", text: `A Declaração Universal dos Direitos Humanos (1948) estabelece que "todos os seres humanos nascem livres e iguais em dignidade e em direitos". No contexto brasileiro, qual dos seguintes desafios representa uma violação direta desse princípio?`, options: ["A alta carga tributária sobre produtos de consumo.", "A desigualdade racial e social, que limita o acesso a oportunidades.", "A burocracia para a abertura de novas empresas.", "A polarização política nas redes sociais.", "A complexidade do sistema eleitoral."], correct: 1 },
-                    { id: "FG_M2", type: "multipla_escolha", text: `O conceito de "Indústria 4.0" refere-se à quarta revolução industrial, caracterizada pela integração de tecnologias digitais, físicas e biológicas. Qual das seguintes opções é uma consequência social direta dessa revolução?`, options: ["O aumento da produção agrícola familiar.", "A valorização de profissões exclusivamente manuais.", "A necessidade de requalificação profissional e o surgimento de novas profissões.", "A diminuição do uso da internet e das redes sociais.", "O fim da automação nas fábricas."], correct: 2 },
-                    { id: "FG_M3", type: "multipla_escolha", text: `A Constituição Federal de 1988 é conhecida como "Constituição Cidadã" por ampliar direitos e garantias fundamentais. A criação do Sistema Único de Saúde (SUS), baseada nos princípios de universalidade, integralidade e equidade, é um exemplo de direito social garantido por ela. O princípio da equidade no SUS visa:`, options: ["Oferecer o mesmo tipo de tratamento para todas as pessoas, independentemente da necessidade.", "Priorizar o atendimento em hospitais privados.", "Diminuir as desigualdades, investindo mais onde a carência é maior.", "Limitar o acesso de estrangeiros aos serviços de saúde.", "Cobrar pelos serviços de acordo com a renda do paciente."], correct: 2 },
-                    { id: "FG_M4", type: "multipla_escolha", text: `As discussões sobre diversidade e inclusão têm ganhado destaque na sociedade e nas organizações. Uma política de inclusão eficaz deve ir além da simples contratação de pessoas de grupos minorizados, devendo promover:`, options: ["A criação de metas de diversidade sem alterar a cultura da empresa.", "Um ambiente de trabalho que valorize as diferenças e garanta equidade de oportunidades.", "A separação de equipes por afinidade para evitar conflitos.", "A padronização de comportamentos para fortalecer a identidade corporativa.", "O foco exclusivo em competências técnicas, ignorando as habilidades socioemocionais."], correct: 1 },
-                    { id: "FG_M5", type: "multipla_escolha", text: `O Antropoceno é um termo proposto para descrever a época geológica atual, na qual as atividades humanas se tornaram a principal força de transformação planetária. Qual dos fenômenos abaixo é a evidência mais marcante do Antropoceno?`, options: ["As variações naturais do campo magnético da Terra.", "Os ciclos de eras glaciais e interglaciais.", "A movimentação das placas tectônicas.", "As mudanças climáticas globais aceleradas pela emissão de gases de efeito estufa.", "A ocorrência de eclipses solares e lunares."], correct: 3 },
-                    { id: "FG_M6", type: "multipla_escolha", text: `O Estatuto da Criança e do Adolescente (ECA) preconiza a doutrina da proteção integral. Isso significa que crianças e adolescentes são:`, options: ["Propriedade dos pais, que têm poder absoluto sobre eles.", "Incapazes de opinar sobre suas próprias vidas.", "Sujeitos de direitos com prioridade absoluta na formulação de políticas públicas.", "Adultos em miniatura, com as mesmas responsabilidades.", "Um problema exclusivo do sistema de segurança pública."], correct: 2 },
-                    { id: "FG_M7", type: "multipla_escolha", text: `A globalização é um processo de intensificação das trocas econômicas, políticas e culturais entre os países. Uma de suas consequências culturais é:`, options: ["O isolamento completo das culturas locais.", "A homogeneização cultural, com a difusão de padrões de consumo globais.", "O desaparecimento das línguas e dialetos locais.", "A proibição de manifestações culturais tradicionais.", "A redução do acesso à informação internacional."], correct: 1 },
-                    { id: "FG_M8", type: "multipla_escolha", text: `O conceito de "lugar de fala" se popularizou nos debates sociais contemporâneos. Ele se refere à ideia de que:`, options: ["Apenas pessoas de um determinado grupo podem falar sobre suas experiências.", "A posição social de um indivíduo influencia sua perspectiva e a legitimidade de seu discurso sobre certos temas.", "Todas as opiniões têm o mesmo valor, independentemente da experiência de quem fala.", "O debate deve ser restrito a especialistas acadêmicos.", "A liberdade de expressão é absoluta e não pode ser questionada."], correct: 1 },
-                    { id: "FG_M9", type: "multipla_escolha", text: `A Lei Geral de Proteção de Dados (LGPD) no Brasil tem como objetivo principal:`, options: ["Aumentar a coleta de dados pessoais pelas empresas.", "Proteger os direitos fundamentais de liberdade e de privacidade dos cidadãos.", "Facilitar a venda de bancos de dados pessoais sem consentimento.", "Restringir o acesso dos cidadãos às suas próprias informações.", "Permitir que o governo monitore todas as comunicações online."], correct: 1 },
-                    { id: "FG_M10", type: "multipla_escolha", text: `O envelhecimento da população é uma tendência demográfica no Brasil e no mundo. Qual é uma implicação direta desse fenômeno para as políticas públicas?`, options: ["A necessidade de reduzir os investimentos em educação infantil.", "A diminuição da demanda por serviços de saúde.", "A necessidade de reformar os sistemas de previdência e ampliar os cuidados com a saúde do idoso.", "A queda nos preços de imóveis em áreas urbanas.", "O aumento da taxa de natalidade para compensar."], correct: 2 },
-                    { id: "FG_M11", type: "multipla_escolha", text: `A Economia Criativa é um setor baseado no capital intelectual e cultural e na criatividade. Qual das seguintes atividades é um exemplo de Economia Criativa?`, options: ["Extração de minério de ferro.", "Produção de soja em larga escala.", "Desenvolvimento de software e games.", "Fabricação de automóveis.", "Construção civil."], correct: 2 },
-                    { id: "FG_M12", type: "multipla_escolha", text: `O conceito de interseccionalidade, proposto por Kimberlé Crenshaw, é fundamental para entender as desigualdades sociais. Ele sugere que:`, options: ["As diferentes formas de opressão (como racismo, sexismo, classismo) são independentes e devem ser analisadas separadamente.", "Cada indivíduo pertence a apenas um grupo social, que define sua identidade.", "As opressões se sobrepõem e se cruzam, criando experiências únicas de discriminação.", "A classe social é o único fator determinante da desigualdade.", "A opressão de gênero é a mais importante e deve ser priorizada."], correct: 2 },
-                    { id: "FG_M13", type: "multipla_escolha", text: `A Agenda 2030 da ONU estabelece os Objetivos de Desenvolvimento Sustentável (ODS), um apelo universal à ação para acabar com a pobreza, proteger o planeta e garantir que todas as pessoas desfrutem de paz e prosperidade. Um dos ODS é "Educação de Qualidade". Isso implica:`, options: ["Garantir que todas as crianças completem o ensino primário.", "Assegurar uma educação inclusiva, equitativa e de qualidade, e promover oportunidades de aprendizagem ao longo da vida para todos.", "Focar exclusivamente no ensino de ciências e matemática.", "Privatizar todo o sistema educacional para aumentar a eficiência.", "Reduzir o salário dos professores para cortar custos."], correct: 1 },
-                    { id: "FG_M14", type: "multipla_escolha", text: `A mobilidade urbana é um grande desafio nas metrópoles brasileiras. Uma solução sustentável para esse problema envolve:`, options: ["Incentivar o uso de transporte individual motorizado com mais viadutos e túneis.", "Priorizar o transporte público de qualidade, ciclovias e a mobilidade de pedestres.", "Aumentar o preço dos combustíveis sem oferecer alternativas.", "Restringir a circulação de pessoas no centro da cidade.", "Construir mais vagas de estacionamento em áreas centrais."], correct: 1 },
-                    { id: "FG_M15", type: "multipla_escolha", text: `O que caracteriza um Estado Democrático de Direito?`, options: ["O poder concentrado em um único líder que decide pelo bem do povo.", "A soberania popular, o império da lei e o respeito aos direitos fundamentais.", "A ausência de leis e a liberdade total dos indivíduos.", "A submissão do poder judiciário ao poder executivo.", "A realização de eleições periódicas, mesmo sem garantias de liberdade."], correct: 1 },
+                    { id: "FG_D2", type: "discursiva", text: `A disseminação de notícias falsas (fake news) tornou-se um dos maiores desafios para as democracias contemporâneas. Analise o fenômeno das fake news, considerando: a) os mecanismos psicossociais que contribuem para sua propagação (viés de confirmação, bolhas informacionais); b) as consequências para o debate público e a confiança nas instituições.` },
+                    { id: "FG_D3", type: "discursiva", text: `O Brasil possui uma das maiores biodiversidades do planeta, mas enfrenta graves desafios ambientais, como o desmatamento na Amazônia. Discorra sobre a importância do desenvolvimento sustentável, explicando: a) o conceito de sustentabilidade, articulando as dimensões ambiental, social e econômica; b) duas ações para promover a conservação ambiental.` },
+                    { id: "FG_M1", type: "multipla_escolha", text: `A Declaração Universal dos Direitos Humanos (1948) estabelece que "todos os seres humanos nascem livres e iguais em dignidade e em direitos". No contexto brasileiro, qual dos seguintes desafios representa uma violação direta desse princípio?`, options: ["A alta carga tributária.", "A desigualdade racial e social.", "A burocracia para novas empresas.", "A polarização política.", "A complexidade do sistema eleitoral."], correct: 1 },
+                    { id: "FG_M2", type: "multipla_escolha", text: `O conceito de "Indústria 4.0" refere-se à quarta revolução industrial. Qual das seguintes opções é uma consequência social direta dessa revolução?`, options: ["Aumento da produção agrícola familiar.", "Valorização de profissões manuais.", "A necessidade de requalificação profissional.", "Diminuição do uso da internet.", "O fim da automação."], correct: 2 },
+                    { id: "FG_M3", type: "multipla_escolha", text: `O princípio da equidade no SUS visa:`, options: ["Oferecer o mesmo tratamento para todos.", "Priorizar hospitais privados.", "Diminuir as desigualdades, investindo mais onde a carência é maior.", "Limitar o acesso de estrangeiros.", "Cobrar pelos serviços de acordo com a renda."], correct: 2 },
+                    { id: "FG_M4", type: "multipla_escolha", text: `Uma política de inclusão eficaz em uma organização deve promover:`, options: ["Metas de diversidade sem alterar a cultura.", "Um ambiente que valorize as diferenças e garanta equidade.", "A separação de equipes por afinidade.", "A padronização de comportamentos.", "Foco exclusivo em competências técnicas."], correct: 1 },
+                    { id: "FG_M5", type: "multipla_escolha", text: `O Antropoceno é a época geológica atual, marcada pelo impacto humano. Qual fenômeno é a evidência mais marcante do Antropoceno?`, options: ["Variações do campo magnético da Terra.", "Ciclos de eras glaciais.", "Movimentação das placas tectônicas.", "Mudanças climáticas globais aceleradas.", "Ocorrência de eclipses."], correct: 3 },
+                    { id: "FG_M6", type: "multipla_escolha", text: `O Estatuto da Criança e do Adolescente (ECA) preconiza a doutrina da proteção integral. Isso significa que crianças e adolescentes são:`, options: ["Propriedade dos pais.", "Incapazes de opinar.", "Sujeitos de direitos com prioridade absoluta.", "Adultos em miniatura.", "Problema da segurança pública."], correct: 2 },
+                    { id: "FG_M7", type: "multipla_escolha", text: `A globalização é um processo de intensificação das trocas globais. Uma de suas consequências culturais é:`, options: ["O isolamento das culturas locais.", "A homogeneização cultural e difusão de padrões de consumo globais.", "O desaparecimento das línguas locais.", "A proibição de manifestações culturais.", "A redução do acesso à informação."], correct: 1 },
+                    { id: "FG_M8", type: "multipla_escolha", text: `O conceito de "lugar de fala" refere-se à ideia de que:`, options: ["Apenas um grupo pode falar sobre suas experiências.", "A posição social de um indivíduo influencia sua perspectiva e legitimidade.", "Todas as opiniões têm o mesmo valor.", "O debate deve ser restrito a especialistas.", "A liberdade de expressão é absoluta."], correct: 1 },
+                    { id: "FG_M9", type: "multipla_escolha", text: `A Lei Geral de Proteção de Dados (LGPD) no Brasil tem como objetivo principal:`, options: ["Aumentar a coleta de dados pelas empresas.", "Proteger os direitos de liberdade e privacidade dos cidadãos.", "Facilitar a venda de dados sem consentimento.", "Restringir o acesso dos cidadãos às suas informações.", "Permitir monitoramento governamental online."], correct: 1 },
+                    { id: "FG_M10", type: "multipla_escolha", text: `O envelhecimento da população é uma tendência demográfica no Brasil. Qual é uma implicação direta para as políticas públicas?`, options: ["Reduzir investimentos em educação infantil.", "Diminuição da demanda por saúde.", "Reformar a previdência e ampliar cuidados com a saúde do idoso.", "Queda nos preços de imóveis.", "Aumento da taxa de natalidade."], correct: 2 },
+                    { id: "FG_M11", type: "multipla_escolha", text: `Qual das seguintes atividades é um exemplo de Economia Criativa?`, options: ["Extração de minério.", "Produção de soja.", "Desenvolvimento de software e games.", "Fabricação de automóveis.", "Construção civil."], correct: 2 },
+                    { id: "FG_M12", type: "multipla_escolha", text: `O conceito de interseccionalidade sugere que:`, options: ["As opressões (racismo, sexismo) são independentes.", "Cada indivíduo pertence a um único grupo social.", "As opressões se sobrepõem, criando experiências únicas de discriminação.", "A classe social é o único fator determinante da desigualdade.", "A opressão de gênero é a mais importante."], correct: 2 },
+                    { id: "FG_M13", type: "multipla_escolha", text: `O Objetivo de Desenvolvimento Sustentável (ODS) "Educação de Qualidade" implica:`, options: ["Garantir que todos completem o ensino primário.", "Assegurar educação inclusiva, equitativa e de qualidade para todos.", "Focar exclusivamente em ciências e matemática.", "Privatizar todo o sistema educacional.", "Reduzir o salário dos professores."], correct: 1 },
+                    { id: "FG_M14", type: "multipla_escolha", text: `Uma solução sustentável para o desafio da mobilidade urbana nas metrópoles brasileiras envolve:`, options: ["Incentivar o transporte individual motorizado.", "Priorizar transporte público de qualidade, ciclovias e pedestres.", "Aumentar o preço dos combustíveis sem alternativas.", "Restringir a circulação de pessoas no centro.", "Construir mais estacionamentos."], correct: 1 },
+                    { id: "FG_M15", type: "multipla_escolha", text: `O que caracteriza um Estado Democrático de Direito?`, options: ["Poder concentrado em um único líder.", "Soberania popular, império da lei e respeito aos direitos fundamentais.", "Ausência de leis.", "Submissão do judiciário ao executivo.", "Eleições sem garantias de liberdade."], correct: 1 },
                 ]
             },
             componente_especifico: {
-                title: "Componente Específico",
-                timeLimit: 60,
+                title: "Componente Específico", timeLimit: 60,
                 questions: [
-                    // DISCURSIVAS
-                    { id: "CE_D1", type: "discursiva", text: `Um paciente de 35 anos busca terapia com queixas de ansiedade social intensa e pensamentos recorrentes de que será julgado negativamente. Ele evita apresentações no trabalho e encontros sociais. Descreva como a Terapia Cognitivo-Comportamental (TCC) abordaria este caso, explicando: a) o modelo cognitivo do transtorno; b) duas técnicas que poderiam ser utilizadas na intervenção.` },
-                    { id: "CE_D2", type: "discursiva", text: `Diferencie, do ponto de vista da psicopatologia psicanalítica, as estruturas clínicas da neurose e da psicose. Aborde: a) a relação do sujeito com a realidade em cada estrutura; b) o principal mecanismo de defesa associado a cada uma (recalque para a neurose, foraclusão para a psicose).` },
-                    { id: "CE_D3", type: "discursiva", text: `O processo de Avaliação Psicológica é um procedimento complexo que vai além da simples aplicação de testes. Descreva as etapas de um processo de avaliação psicológica, desde a demanda inicial até a devolutiva, e explique a importância do uso de múltiplas fontes de informação (entrevistas, observações, testes) para a elaboração de um psicodiagnóstico.` },
-                    // MÚLTIPLA ESCOLHA
-                    { id: "CE_M1", type: "multipla_escolha", text: `No Behaviorismo Radical de B.F. Skinner, o comportamento é modelado por suas consequências. Um comportamento que é fortalecido pela remoção de um estímulo aversivo é um exemplo de:`, options: ["Reforço positivo.", "Punição positiva.", "Punição negativa.", "Reforço negativo.", "Extinção."], correct: 3 },
-                    { id: "CE_M2", type: "multipla_escolha", text: `Segundo a teoria do desenvolvimento de Jean Piaget, a capacidade de pensar de forma abstrata e hipotético-dedutiva, raciocinando sobre possibilidades e não apenas sobre a realidade concreta, é característica do estágio:`, options: ["Sensório-motor.", "Pré-operatório.", "Operatório concreto.", "Operatório formal.", "Pós-formal."], correct: 3 },
-                    { id: "CE_M3", type: "multipla_escolha", text: `A validade de um teste psicológico refere-se:`, options: ["À consistência ou estabilidade dos seus resultados ao longo do tempo.", "À padronização de sua aplicação e correção.", "Ao grau em que o teste mede efetivamente o construto que se propõe a medir.", "À existência de normas para comparar o resultado do indivíduo com um grupo de referência.", "À facilidade de aplicação do instrumento pelo psicólogo."], correct: 2 },
-                    { id: "CE_M4", type: "multipla_escolha", text: `Na teoria de Carl Rogers, três condições são consideradas necessárias e suficientes para a mudança terapêutica: empatia, congruência e aceitação positiva incondicional. A congruência do terapeuta refere-se a:`, options: ["Ser autêntico, genuíno e integrado na relação com o cliente.", "Compreender o mundo interno do cliente como se fosse o seu próprio.", "Aceitar o cliente sem julgamento, independentemente do que ele diga ou faça.", "Interpretar os sonhos e atos falhos do cliente.", "Utilizar técnicas de dessensibilização sistemática."], correct: 0 },
-                    { id: "CE_M5", type: "multipla_escolha", text: `De acordo com a teoria sociocultural de Vygotsky, a aprendizagem e o desenvolvimento cognitivo são fundamentalmente processos sociais. O conceito que descreve a distância entre o que a criança consegue fazer sozinha e o que ela consegue fazer com a ajuda de alguém mais experiente é a:`, options: ["Acomodação.", "Zona de Desenvolvimento Proximal (ZDP).", "Equilibração.", "Assimilação.", "Maturação biológica."], correct: 1 },
-                    { id: "CE_M6", type: "multipla_escolha", text: `Qual das seguintes abordagens teóricas em psicologia social enfatiza o estudo de como as pessoas percebem, pensam e lembram de informações sobre os outros?`, options: ["Behaviorismo Social.", "Psicanálise.", "Psicologia Humanista.", "Cognição Social.", "Análise Institucional."], correct: 3 },
-                    { id: "CE_M7", type: "multipla_escolha", text: `O DSM-5 (Manual Diagnóstico e Estatístico de Transtornos Mentais) é uma ferramenta importante na psicopatologia. Sua abordagem é primariamente:`, options: ["Etiológica, focada nas causas dos transtornos.", "Psicanalítica, baseada nas estruturas clínicas.", "Descritiva e categorial, baseada na observação de sinais e sintomas.", "Fenomenológica, focada na experiência vivida pelo sujeito.", "Sistêmica, focada nas relações familiares."], correct: 2 },
-                    { id: "CE_M8", type: "multipla_escolha", text: `No contexto da psicologia organizacional, o fenômeno do 'groupthink' (pensamento de grupo) é um risco para a tomada de decisão. Ele se caracteriza por:`, options: ["Um processo de debate aberto e crítico que leva à melhor solução.", "A busca por unanimidade e coesão que suprime a avaliação crítica de alternativas.", "A fragmentação do grupo em subgrupos rivais.", "A dificuldade do grupo em chegar a qualquer decisão.", "A influência excessiva de um especialista externo ao grupo."], correct: 1 },
-                    { id: "CE_M9", type: "multipla_escolha", text: `A Teoria do Apego, desenvolvida por John Bowlby, postula que o vínculo inicial entre a criança e seu cuidador é fundamental para o desenvolvimento socioemocional. Um apego seguro é caracterizado por:`, options: ["Ansiedade e angústia da criança quando o cuidador se afasta, e raiva ou indiferença quando ele retorna.", "A criança explora o ambiente com confiança na presença do cuidador e busca conforto nele quando se sente ameaçada.", "A criança mostra pouca ou nenhuma preferência entre o cuidador e um estranho.", "A criança evita o contato com o cuidador, mostrando-se autossuficiente.", "Dependência excessiva do cuidador, com recusa a explorar qualquer ambiente."], correct: 1 },
-                    { id: "CE_M10", type: "multipla_escolha", text: `Qual das seguintes opções descreve corretamente um princípio da Gestalt-Terapia?`, options: ["A análise da transferência e contratransferência como foco central.", "O uso da associação livre para acessar o inconsciente.", "A ênfase no aqui-e-agora e na tomada de consciência (awareness).", "A reestruturação de crenças irracionais e pensamentos automáticos.", "O condicionamento de novas respostas a estímulos ansiogênicos."], correct: 2 },
-                    { id: "CE_M11", type: "multipla_escolha", text: `A precisão, também chamada de fidedignidade, é um critério psicométrico fundamental de um teste. Ela se refere:`, options: ["À capacidade do teste de prever um desempenho futuro.", "À consistência dos escores obtidos pela mesma pessoa quando retestada com o mesmo teste ou com uma forma equivalente.", "À representatividade dos itens do teste em relação ao construto que se quer medir.", "Ao grau em que o teste mede o que se propõe a medir.", "À objetividade na correção dos itens do teste."], correct: 1 },
-                    { id: "CE_M12", type: "multipla_escolha", text: `Na psicanálise, o complexo de Édipo é um conceito central para o desenvolvimento psicossexual. Sua resolução bem-sucedida implica:`, options: ["A manutenção do desejo incestuoso pelo progenitor do sexo oposto.", "A identificação com o progenitor do mesmo sexo e a internalização das normas parentais.", "A rejeição de ambos os pais e a busca por autonomia precoce.", "A fixação na fase oral do desenvolvimento.", "A negação completa da sexualidade infantil."], correct: 1 },
-                    { id: "CE_M13", type: "multipla_escolha", text: `O estudo da memória na psicologia cognitiva distingue diferentes sistemas. A memória que se refere a fatos e conhecimentos gerais sobre o mundo (ex: saber que Paris é a capital da França) é chamada de:`, options: ["Memória episódica.", "Memória semântica.", "Memória de procedimento.", "Memória de trabalho.", "Memória sensorial."], correct: 1 },
-                    { id: "CE_M14", type: "multipla_escolha", text: `A abordagem sistêmica em terapia familiar entende o sintoma de um indivíduo como:`, options: ["Uma expressão de um conflito puramente intrapsíquico.", "Um comportamento aprendido que deve ser extinto.", "A manifestação de uma disfunção no sistema familiar como um todo.", "Uma distorção cognitiva que precisa ser reestruturada.", "Um problema genético ou biológico isolado."], correct: 2 },
-                    { id: "CE_M15", type: "multipla_escolha", text: `Qual dos seguintes processos é um exemplo de condicionamento clássico (pavloviano)?`, options: ["Um rato aprende a pressionar uma barra para receber comida.", "Uma criança é elogiada por arrumar o quarto e passa a fazê-lo com mais frequência.", "Um cão começa a salivar ao som de uma sineta que foi previamente associada à apresentação de comida.", "Um motorista perde pontos na carteira por excesso de velocidade e passa a dirigir mais devagar.", "Um aluno estuda para uma prova para evitar uma nota baixa."], correct: 2 },
+                    { id: "CE_D1", type: "discursiva", text: `Um paciente de 35 anos busca terapia com queixas de ansiedade social e pensamentos de que será julgado negativamente. Descreva como a Terapia Cognitivo-Comportamental (TCC) abordaria este caso, explicando: a) o modelo cognitivo do transtorno; b) duas técnicas que poderiam ser utilizadas.` },
+                    { id: "CE_D2", type: "discursiva", text: `Diferencie, do ponto de vista da psicopatologia psicanalítica, as estruturas da neurose e da psicose. Aborde: a) a relação do sujeito com a realidade em cada estrutura; b) o principal mecanismo de defesa associado a cada uma (recalque e foraclusão).` },
+                    { id: "CE_D3", type: "discursiva", text: `O processo de Avaliação Psicológica vai além da aplicação de testes. Descreva as etapas de um processo de avaliação, desde a demanda inicial até a devolutiva, e explique a importância do uso de múltiplas fontes de informação.` },
+                    { id: "CE_M1", type: "multipla_escolha", text: `No Behaviorismo Radical, um comportamento fortalecido pela remoção de um estímulo aversivo é exemplo de:`, options: ["Reforço positivo.", "Punição positiva.", "Punição negativa.", "Reforço negativo.", "Extinção."], correct: 3 },
+                    { id: "CE_M2", type: "multipla_escolha", text: `Segundo Piaget, a capacidade de pensar de forma abstrata e hipotético-dedutiva é característica do estágio:`, options: ["Sensório-motor.", "Pré-operatório.", "Operatório concreto.", "Operatório formal.", "Pós-formal."], correct: 3 },
+                    { id: "CE_M3", type: "multipla_escolha", text: `A validade de um teste psicológico refere-se:`, options: ["À consistência dos seus resultados.", "À padronização de sua aplicação.", "Ao grau em que o teste mede o que se propõe a medir.", "À existência de normas de referência.", "À facilidade de aplicação."], correct: 2 },
+                    { id: "CE_M4", type: "multipla_escolha", text: `Na teoria de Carl Rogers, a congruência do terapeuta refere-se a:`, options: ["Ser autêntico e genuíno na relação.", "Compreender o mundo interno do cliente.", "Aceitar o cliente sem julgamento.", "Interpretar os sonhos do cliente.", "Usar dessensibilização sistemática."], correct: 0 },
+                    { id: "CE_M5", type: "multipla_escolha", text: `Na teoria de Vygotsky, o conceito que descreve a distância entre o que a criança faz sozinha e o que faz com ajuda é a:`, options: ["Acomodação.", "Zona de Desenvolvimento Proximal (ZDP).", "Equilibração.", "Assimilação.", "Maturação."], correct: 1 },
+                    { id: "CE_M6", type: "multipla_escolha", text: `Qual abordagem em psicologia social enfatiza o estudo de como as pessoas percebem, pensam e lembram de informações sobre os outros?`, options: ["Behaviorismo Social.", "Psicanálise.", "Psicologia Humanista.", "Cognição Social.", "Análise Institucional."], correct: 3 },
+                    { id: "CE_M7", type: "multipla_escolha", text: `A abordagem do DSM-5 é primariamente:`, options: ["Etiológica.", "Psicanalítica.", "Descritiva e categorial.", "Fenomenológica.", "Sistêmica."], correct: 2 },
+                    { id: "CE_M8", type: "multipla_escolha", text: `O fenômeno do 'groupthink' (pensamento de grupo) caracteriza-se por:`, options: ["Debate aberto e crítico.", "Busca por unanimidade que suprime a avaliação crítica.", "Fragmentação do grupo.", "Dificuldade em chegar a uma decisão.", "Influência de um especialista externo."], correct: 1 },
+                    { id: "CE_M9", type: "multipla_escolha", text: `Na Teoria do Apego de Bowlby, um apego seguro é caracterizado por:`, options: ["Ansiedade na separação e raiva no retorno.", "A criança explora com confiança e busca conforto no cuidador.", "Pouca preferência entre cuidador e estranho.", "A criança evita o contato com o cuidador.", "Dependência excessiva do cuidador."], correct: 1 },
+                    { id: "CE_M10", type: "multipla_escolha", text: `Qual das seguintes opções descreve um princípio da Gestalt-Terapia?`, options: ["Análise da transferência.", "Uso da associação livre.", "Ênfase no aqui-e-agora e na awareness.", "Reestruturação de crenças irracionais.", "Condicionamento de novas respostas."], correct: 2 },
+                    { id: "CE_M11", type: "multipla_escolha", text: `A precisão (fidedignidade) de um teste refere-se:`, options: ["À capacidade de prever um desempenho.", "À consistência dos escores em retestagem.", "À representatividade dos itens.", "Ao grau em que mede o que se propõe.", "À objetividade na correção."], correct: 1 },
+                    { id: "CE_M12", type: "multipla_escolha", text: `Na psicanálise, a resolução do complexo de Édipo implica:`, options: ["Manutenção do desejo incestuoso.", "Identificação com o progenitor do mesmo sexo.", "Rejeição de ambos os pais.", "Fixação na fase oral.", "Negação da sexualidade infantil."], correct: 1 },
+                    { id: "CE_M13", type: "multipla_escolha", text: `A memória que se refere a fatos e conhecimentos gerais sobre o mundo é chamada de:`, options: ["Memória episódica.", "Memória semântica.", "Memória de procedimento.", "Memória de trabalho.", "Memória sensorial."], correct: 1 },
+                    { id: "CE_M14", type: "multipla_escolha", text: `A abordagem sistêmica entende o sintoma de um indivíduo como:`, options: ["Expressão de um conflito intrapsíquico.", "Comportamento aprendido a ser extinto.", "Manifestação de uma disfunção no sistema familiar.", "Distorção cognitiva a ser reestruturada.", "Problema biológico isolado."], correct: 2 },
+                    { id: "CE_M15", type: "multipla_escolha", text: `Qual processo é um exemplo de condicionamento clássico (pavloviano)?`, options: ["Rato pressiona barra para receber comida.", "Criança é elogiada por arrumar o quarto.", "Cão saliva ao som de sineta associada à comida.", "Motorista perde pontos e dirige mais devagar.", "Aluno estuda para evitar nota baixa."], correct: 2 },
                 ]
             },
             pratica_profissional: {
-                title: "Prática Profissional",
-                timeLimit: 60,
+                title: "Prática Profissional", timeLimit: 60,
                 questions: [
-                    // DISCURSIVAS
-                    { id: "PP_D1", type: "discursiva", text: `Você é psicólogo(a) em um Centro de Referência de Assistência Social (CRAS) e atende uma família cujo filho adolescente, de 15 anos, apresenta evasão escolar e envolvimento com atos infracionais. A mãe relata dificuldades em impor limites. Descreva sua proposta de intervenção, considerando: a) a articulação com outros serviços da rede (escola, Conselho Tutelar, CREAS); b) uma estratégia de atuação junto à família para fortalecer os vínculos e a função protetiva.` },
-                    { id: "PP_D2", type: "discursiva", text: `Como psicólogo(a) hospitalar em uma unidade de oncologia pediátrica, você é chamado para atender uma criança de 8 anos em cuidados paliativos e sua família. Os pais demonstram dificuldade em falar sobre a morte com a filha. Descreva sua atuação, abordando: a) como você facilitaria a comunicação entre pais e filha sobre o processo de finitude, respeitando o desenvolvimento cognitivo da criança; b) dois cuidados éticos essenciais nesse contexto.` },
-                    { id: "PP_D3", type: "discursiva", text: `O setor de RH de uma empresa contrata você para lidar com um aumento de queixas de estresse e conflitos interpessoais em uma equipe de vendas. O gestor da equipe é conhecido por ser autoritário e focado apenas em metas. Elabore um plano de intervenção em Psicologia Organizacional e do Trabalho (POT), detalhando: a) sua estratégia de diagnóstico (ex: entrevistas, observação, aplicação de questionários); b) uma proposta de intervenção para desenvolver a liderança e melhorar o clima organizacional.` },
-                    // MÚLTIPLA ESCOLHA
-                    { id: "PP_M1", type: "multipla_escolha", text: `Um psicólogo escolar é informado por um aluno de 14 anos que ele sofre violência física em casa. De acordo com o Código de Ética Profissional do Psicólogo e o ECA, qual a conduta correta?`, options: ["Manter sigilo absoluto, pois o aluno pediu e o vínculo terapêutico é prioritário.", "Conversar com os pais e pedir que eles mudem o comportamento, sem tomar outras medidas.", "Notificar imediatamente o Conselho Tutelar, mesmo que isso implique a quebra do sigilo.", "Aconselhar o aluno a fugir de casa para se proteger.", "Ignorar a denúncia, pois a escola não deve se envolver em assuntos familiares."], correct: 2 },
-                    { id: "PP_M2", type: "multipla_escolha", text: `Ao elaborar um laudo psicológico para fins judiciais, o psicólogo deve:`, options: ["Usar linguagem subjetiva e jargões técnicos para demonstrar conhecimento.", "Apresentar conclusões afirmativas sobre fatos que não pôde observar diretamente, como a ocorrência de um crime.", "Limitar-se a descrever os instrumentos utilizados, sem apresentar uma análise conclusiva.", "Fundamentar sua análise em uma avaliação criteriosa, utilizando métodos e técnicas reconhecidas, e ser claro, preciso e objetivo.", "Incluir informações sobre a vida íntima do avaliado que não sejam relevantes para a demanda judicial."], correct: 3 },
-                    { id: "PP_M3", type: "multipla_escolha", text: `A atuação do psicólogo em um Centro de Atenção Psicossocial (CAPS) é pautada pela lógica do cuidado em liberdade e da atenção psicossocial. Uma prática condizente com esse modelo é:`, options: ["Focar exclusivamente na medicação e no controle dos sintomas do paciente.", "Realizar intervenções individuais no consultório, sem contato com a família ou a comunidade.", "Construir um Projeto Terapêutico Singular (PTS) em conjunto com o usuário e sua rede de apoio, visando à reinserção social.", "Priorizar a internação em hospitais psiquiátricos como principal forma de tratamento.", "Limitar o atendimento aos casos considerados 'curáveis'."], correct: 2 },
-                    { id: "PP_M4", type: "multipla_escolha", text: `Em um processo de seleção de pessoal, o psicólogo utiliza um teste de personalidade que não possui parecer favorável no SATEPSI (Sistema de Avaliação de Testes Psicológicos). Essa prática constitui:`, options: ["Uma decisão autônoma e aceitável, se o psicólogo julgar o teste adequado.", "Uma falta ética, pois é dever do psicólogo utilizar apenas instrumentos validados pelo Conselho Federal de Psicologia.", "Uma prática recomendada para inovar no processo de seleção.", "Um procedimento legal, desde que a empresa autorize por escrito.", "Uma questão de menor importância, pois o teste é apenas uma parte da seleção."], correct: 1 },
-                    { id: "PP_M5", type: "multipla_escolha", text: `Um psicólogo clínico recebe em seu consultório um paciente que relata ideação suicida com planejamento. Qual é a conduta prioritária e ética a ser tomada?`, options: ["Manter o sigilo absoluto e apenas trabalhar o tema em terapia.", "Contatar a família ou a rede de apoio do paciente para comunicar o risco, mesmo sem o consentimento dele, visando à proteção da vida.", "Encaminhar o paciente para um psiquiatra e encerrar o acompanhamento psicológico.", "Sugerir uma internação voluntária e não tomar outras providências se o paciente recusar.", "Ligar imediatamente para a polícia e informar a situação."], correct: 1 },
-                    { id: "PP_M6", type: "multipla_escolha", text: `A Redução de Danos é uma estratégia de cuidado voltada para usuários de álcool e outras drogas. Seu objetivo principal é:`, options: ["Exigir a abstinência total e imediata como única condição para o tratamento.", "Minimizar as consequências negativas do uso de drogas, sem necessariamente exigir a abstinência, respeitando a autonomia do sujeito.", "Punir o usuário para que ele abandone o vício.", "Isolar o usuário da sociedade para evitar contágio.", "Oferecer apenas tratamento medicamentoso, desconsiderando os aspectos sociais."], correct: 1 },
-                    { id: "PP_M7", type: "multipla_escolha", text: `No contexto da psicologia jurídica, o psicólogo que atua como perito deve:`, options: ["Atuar para defender a parte que o contratou, buscando provas a seu favor.", "Manter uma postura imparcial, produzindo um laudo técnico e isento para subsidiar a decisão do juiz.", "Realizar psicoterapia com as partes envolvidas no processo.", "Aconselhar o juiz sobre qual deve ser a sentença final.", "Omitir dados da avaliação que possam prejudicar a imagem de uma das partes."], correct: 1 },
-                    { id: "PP_M8", type: "multipla_escolha", text: `O trabalho do psicólogo na Atenção Primária à Saúde (em uma UBS, por exemplo) deve focar em:`, options: ["Psicoterapia individual de longa duração para casos complexos.", "Ações de promoção de saúde mental e prevenção de agravos, com foco na comunidade e em grupos.", "Aplicação de testes para diagnóstico de transtornos psiquiátricos graves.", "Atendimento exclusivo de pacientes encaminhados por médicos.", "Realização de perícias para o INSS."], correct: 1 },
-                    { id: "PP_M9", type: "multipla_escolha", text: `Um psicólogo é convidado a participar de um programa de TV para comentar um caso criminal de grande repercussão. Segundo o Código de Ética, ele deve:`, options: ["Fazer diagnósticos sobre as pessoas envolvidas com base em informações da mídia.", "Divulgar informações sigilosas de casos que já atendeu para exemplificar.", "Promover-se profissionalmente, aproveitando a visibilidade do caso.", "Evitar a espetacularização e limitar-se a fornecer informações teóricas da psicologia que ajudem a compreender o fenômeno, sem rotular ou expor pessoas.", "Recusar sempre, pois o psicólogo não pode falar com a imprensa."], correct: 3 },
-                    { id: "PP_M10", type: "multipla_escolha", text: `Ao realizar a devolutiva em um processo de psicodiagnóstico infantil, o psicólogo deve comunicar os resultados:`, options: ["Apenas para a escola, que fez o encaminhamento.", "Apenas para a criança, em linguagem técnica e complexa.", "Primeiro aos pais/responsáveis e depois à criança, utilizando linguagem acessível e focando nos potenciais e nas estratégias de ajuda.", "Apenas aos pais, omitindo a informação da criança para protegê-la.", "A todos os envolvidos ao mesmo tempo, incluindo pais, criança e escola, em uma única reunião."], correct: 2 },
-                    { id: "PP_M11", type: "multipla_escolha", text: `A Matriz de Risco Familiar é uma ferramenta utilizada na assistência social para avaliar o grau de vulnerabilidade de uma família. Um psicólogo do SUAS (Sistema Único de Assistência Social) a utiliza para:`, options: ["Classificar as famílias como 'boas' ou 'ruins'.", "Decidir quais famílias devem perder a guarda dos filhos.", "Planejar as ações e priorizar o acompanhamento das famílias em maior situação de risco e violação de direitos.", "Definir o valor do benefício do Bolsa Família.", "Realizar um diagnóstico psiquiátrico de todos os membros da família."], correct: 2 },
-                    { id: "PP_M12", type: "multipla_escolha", text: `Um psicoterapeuta se sente atraído por um(a) paciente e considera iniciar uma relação amorosa. Essa conduta é:`, options: ["Aceitável, se o sentimento for recíproco e a terapia for encerrada.", "Proibida pelo Código de Ética, pois configura aproveitamento da relação de poder e quebra do enquadre terapêutico.", "Permitida, desde que esperem um mês após o fim da terapia.", "Uma questão pessoal, que não tem relação com a ética profissional.", "Aceitável, se for mantida em segredo."], correct: 1 },
-                    { id: "PP_M13", type: "multipla_escolha", text: `A escuta especializada, prevista na Lei nº 13.431/2017, é um procedimento de entrevista com criança ou adolescente vítima ou testemunha de violência perante órgão da rede de proteção. Ela deve ser conduzida por um profissional capacitado com o objetivo de:`, options: ["Produzir prova para o processo judicial, questionando o depoente de forma incisiva.", "Garantir a proteção e o cuidado com a criança/adolescente, evitando a revitimização.", "Fazer com que a criança confesse se está mentindo.", "Substituir a necessidade de um processo judicial.", "Realizar um processo psicoterapêutico durante a entrevista."], correct: 1 },
-                    { id: "PP_M14", type: "multipla_escolha", text: `Qual das seguintes ações caracteriza uma intervenção em psicologia comunitária?`, options: ["Psicoterapia individual com foco em conflitos intrapsíquicos.", "Aplicação de testes de QI para selecionar os mais aptos da comunidade.", "Desenvolvimento de um grupo de mães em uma comunidade para fortalecer vínculos e discutir práticas parentais, a partir de uma demanda local.", "Treinamento de habilidades sociais para executivos de uma grande empresa.", "Diagnóstico e medicalização de problemas sociais."], correct: 2 },
-                    { id: "PP_M15", type: "multipla_escolha", text: `O psicólogo do esporte, ao trabalhar com uma equipe de alto rendimento, tem como uma de suas principais funções:`, options: ["Selecionar os atletas com base apenas em testes de personalidade.", "Atuar como técnico, definindo as estratégias de jogo.", "Desenvolver variáveis psicológicas como concentração, controle da ansiedade, motivação e coesão de grupo.", "Realizar psicoterapia profunda com os atletas para resolver traumas de infância.", "Garantir que os atletas sigam uma dieta rigorosa."], correct: 2 },
+                    { id: "PP_D1", type: "discursiva", text: `Você é psicólogo(a) em um CRAS e atende uma família cujo filho adolescente apresenta evasão escolar e envolvimento com atos infracionais. Descreva sua proposta de intervenção, considerando: a) a articulação com a rede (escola, Conselho Tutelar); b) uma estratégia de atuação junto à família.` },
+                    { id: "PP_D2", type: "discursiva", text: `Como psicólogo(a) hospitalar em oncologia pediátrica, você atende uma criança de 8 anos em cuidados paliativos. Os pais têm dificuldade em falar sobre a morte com a filha. Descreva sua atuação, abordando: a) como facilitaria a comunicação sobre finitude; b) dois cuidados éticos essenciais.` },
+                    { id: "PP_D3", type: "discursiva", text: `O RH de uma empresa contrata você para lidar com estresse e conflitos em uma equipe. O gestor é autoritário e focado em metas. Elabore um plano de intervenção em POT, detalhando: a) sua estratégia de diagnóstico; b) uma proposta de intervenção para a liderança e o clima.` },
+                    { id: "PP_M1", type: "multipla_escolha", text: `Um psicólogo escolar é informado por um aluno de 14 anos que sofre violência física em casa. Qual a conduta correta?`, options: ["Manter sigilo absoluto.", "Conversar com os pais e pedir que mudem.", "Notificar imediatamente o Conselho Tutelar.", "Aconselhar o aluno a fugir.", "Ignorar a denúncia."], correct: 2 },
+                    { id: "PP_M2", type: "multipla_escolha", text: `Ao elaborar um laudo psicológico para fins judiciais, o psicólogo deve:`, options: ["Usar linguagem subjetiva e jargões.", "Apresentar conclusões sobre fatos que não observou.", "Limitar-se a descrever os instrumentos.", "Fundamentar sua análise em métodos reconhecidos e ser claro e objetivo.", "Incluir informações íntimas não relevantes."], correct: 3 },
+                    { id: "PP_M3", type: "multipla_escolha", text: `A atuação do psicólogo em um CAPS é pautada pelo cuidado em liberdade. Uma prática condizente é:`, options: ["Focar exclusivamente na medicação.", "Realizar apenas intervenções individuais.", "Construir um Projeto Terapêutico Singular (PTS) com o usuário e sua rede.", "Priorizar a internação psiquiátrica.", "Limitar o atendimento aos casos 'curáveis'."], correct: 2 },
+                    { id: "PP_M4", type: "multipla_escolha", text: `Um psicólogo utiliza em seleção um teste sem parecer favorável no SATEPSI. Essa prática constitui:`, options: ["Decisão autônoma e aceitável.", "Falta ética, pois deve usar apenas instrumentos validados pelo CFP.", "Prática recomendada para inovar.", "Procedimento legal se a empresa autorizar.", "Questão de menor importância."], correct: 1 },
+                    { id: "PP_M5", type: "multipla_escolha", text: `Um psicólogo clínico recebe um paciente com ideação suicida e planejamento. A conduta prioritária e ética é:`, options: ["Manter sigilo absoluto.", "Contatar a família ou rede de apoio para comunicar o risco, visando à proteção da vida.", "Encaminhar para psiquiatra e encerrar o caso.", "Sugerir internação e não tomar outras providências.", "Ligar para a polícia."], correct: 1 },
+                    { id: "PP_M6", type: "multipla_escolha", text: `O objetivo principal da Redução de Danos, como estratégia de cuidado a usuários de drogas, é:`, options: ["Exigir abstinência imediata.", "Minimizar as consequências negativas do uso, sem necessariamente exigir abstinência.", "Punir o usuário.", "Isolar o usuário da sociedade.", "Oferecer apenas tratamento medicamentoso."], correct: 1 },
+                    { id: "PP_M7", type: "multipla_escolha", text: `No contexto da psicologia jurídica, o psicólogo perito deve:`, options: ["Atuar para defender a parte que o contratou.", "Manter postura imparcial, produzindo laudo técnico e isento.", "Realizar psicoterapia com as partes.", "Aconselhar o juiz sobre a sentença.", "Omitir dados da avaliação."], correct: 1 },
+                    { id: "PP_M8", type: "multipla_escolha", text: `O trabalho do psicólogo na Atenção Primária à Saúde (UBS) deve focar em:`, options: ["Psicoterapia de longa duração.", "Ações de promoção de saúde mental e prevenção, com foco na comunidade.", "Aplicação de testes para diagnóstico de transtornos graves.", "Atendimento exclusivo de encaminhamentos.", "Realização de perícias."], correct: 1 },
+                    { id: "PP_M9", type: "multipla_escolha", text: `Um psicólogo é convidado para comentar um caso criminal na TV. Segundo o Código de Ética, ele deve:`, options: ["Fazer diagnósticos com base na mídia.", "Divulgar informações sigilosas.", "Promover-se profissionalmente.", "Evitar espetacularização e fornecer informações teóricas gerais.", "Recusar sempre."], correct: 3 },
+                    { id: "PP_M10", type: "multipla_escolha", text: `Ao realizar a devolutiva em um psicodiagnóstico infantil, o psicólogo deve comunicar os resultados:`, options: ["Apenas para a escola.", "Apenas para a criança, em linguagem técnica.", "Primeiro aos pais e depois à criança, com linguagem acessível.", "Apenas aos pais.", "A todos ao mesmo tempo."], correct: 2 },
+                    { id: "PP_M11", type: "multipla_escolha", text: `Um psicólogo do SUAS utiliza a Matriz de Risco Familiar para:`, options: ["Classificar as famílias como 'boas' ou 'ruins'.", "Decidir sobre a guarda dos filhos.", "Planejar ações e priorizar o acompanhamento de famílias em maior risco.", "Definir o valor de benefícios.", "Realizar diagnóstico psiquiátrico."], correct: 2 },
+                    { id: "PP_M12", type: "multipla_escolha", text: `Um psicoterapeuta se sente atraído por um(a) paciente e considera iniciar uma relação amorosa. Essa conduta é:`, options: ["Aceitável, se o sentimento for recíproco.", "Proibida pelo Código de Ética.", "Permitida após um mês do fim da terapia.", "Uma questão pessoal.", "Aceitável, se mantida em segredo."], correct: 1 },
+                    { id: "PP_M13", type: "multipla_escolha", text: `A escuta especializada (Lei nº 13.431/2017) tem o objetivo de:`, options: ["Produzir prova para o processo judicial.", "Garantir a proteção da criança/adolescente, evitando a revitimização.", "Fazer a criança confessar.", "Substituir o processo judicial.", "Realizar psicoterapia."], correct: 1 },
+                    { id: "PP_M14", type: "multipla_escolha", text: `Qual ação caracteriza uma intervenção em psicologia comunitária?`, options: ["Psicoterapia individual.", "Aplicação de testes de QI.", "Desenvolvimento de um grupo de mães na comunidade a partir de uma demanda local.", "Treinamento para executivos.", "Diagnóstico e medicalização de problemas."], correct: 2 },
+                    { id: "PP_M15", type: "multipla_escolha", text: `O psicólogo do esporte, ao trabalhar com uma equipe, tem como uma de suas principais funções:`, options: ["Selecionar atletas com testes de personalidade.", "Atuar como técnico.", "Desenvolver variáveis psicológicas como concentração, ansiedade e motivação.", "Realizar psicoterapia profunda.", "Garantir a dieta dos atletas."], correct: 2 },
                 ]
             },
-            prova_completa: {
-                title: "Prova Completa",
-                timeLimit: 120,
-                questions: [] // Será preenchido dinamicamente
-            }
+            prova_completa: { title: "Prova Completa", timeLimit: 120, questions: [] }
         };
+        examData.prova_completa.questions = [ ...examData.formacao_geral.questions, ...examData.componente_especifico.questions, ...examData.pratica_profissional.questions ].sort(() => 0.5 - Math.random());
+        
+        let currentExam = null, currentQuestionIndex = 0, userAnswers = {}, timeRemaining = 0, timerInterval = null, examStartTime = null, weakTopics = [];
+        
+        const examSelection = document.getElementById('examSelection'), quizContainer = document.getElementById('quizContainer'),
+              resultsContainer = document.getElementById('resultsContainer'), historyContainer = document.getElementById('historyContainer'),
+              questionContainer = document.getElementById('questionContainer'), examCards = document.querySelectorAll('.exam-card'),
+              startButton = document.getElementById('startButton'), prevButton = document.getElementById('prevButton'),
+              nextButton = document.getElementById('nextButton'), finishButton = document.getElementById('finishButton'),
+              timerEl = document.getElementById('timer'), progressFill = document.getElementById('progressFill'),
+              questionCounter = document.getElementById('questionCounter'), examTitle = document.getElementById('examTitle'),
+              flashcardButton = document.getElementById('flashcardButton'), downloadAnalysisButton = document.getElementById('downloadAnalysisButton'),
+              downloadFlashcardsButton = document.getElementById('downloadFlashcardsButton'), flashcardsContainer = document.getElementById('flashcardsContainer');
 
-        // Combinar questões para prova completa
-        examData.prova_completa.questions = [
-            ...examData.formacao_geral.questions.slice(0, 8), // Pegando uma amostra
-            ...examData.componente_especifico.questions.slice(0, 8),
-            ...examData.pratica_profissional.questions.slice(0, 8)
-        ];
-
-
-        // --- ESTADO DO APLICATIVO ---
-        let currentExam = null;
-        let currentQuestionIndex = 0;
-        let userAnswers = {};
-        let timeRemaining = 0;
-        let timerInterval = null;
-        let examStartTime = null;
-
-        // --- ELEMENTOS DOM ---
-        const examSelection = document.getElementById('examSelection');
-        const quizContainer = document.getElementById('quizContainer');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const historyContainer = document.getElementById('historyContainer');
-        const questionContainer = document.getElementById('questionContainer');
-        const examCards = document.querySelectorAll('.exam-card');
-        const startButton = document.getElementById('startButton');
-        const prevButton = document.getElementById('prevButton');
-        const nextButton = document.getElementById('nextButton');
-        const finishButton = document.getElementById('finishButton');
-        const timer = document.getElementById('timer');
-        const progressFill = document.getElementById('progressFill');
-        const questionCounter = document.getElementById('questionCounter');
-        const examTitle = document.getElementById('examTitle');
-
-        // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         function initializeApp() {
             setupEventListeners();
-            document.getElementById('apiKeyInput').value = GEMINI_API_KEY.startsWith("COLE_SUA_CHAVE") ? "" : GEMINI_API_KEY;
-            console.log('ENADE-Psi 2025 Simulador com Gemini 2.0 Flash carregado com sucesso!');
+            console.log('ENADE-Psi 2025 Plataforma de Estudos carregada!');
         }
 
         function setupEventListeners() {
             examCards.forEach(card => card.addEventListener('click', () => selectExam(card)));
             startButton.addEventListener('click', startExam);
-            
-            // Navegação Quiz
             prevButton.addEventListener('click', previousQuestion);
             nextButton.addEventListener('click', nextQuestion);
             finishButton.addEventListener('click', finishExam);
-
-            // Botões de Ação Resultados
-            document.getElementById('downloadButton').addEventListener('click', downloadPDF);
+            document.getElementById('downloadAnalysisButton').addEventListener('click', () => downloadContent('resultsContent', 'analise-enade-psi'));
+            document.getElementById('downloadFlashcardsButton').addEventListener('click', () => downloadContent('flashcardsContent', 'flashcards-enade-psi'));
             document.getElementById('newExamButton').addEventListener('click', startNewExam);
             document.getElementById('backToHomeButton').addEventListener('click', backToHome);
-            
-            // Botões Tela Inicial
             document.getElementById('historyButton').addEventListener('click', showHistory);
-            document.getElementById('saveApiKeyButton').addEventListener('click', () => {
-                const newKey = document.getElementById('apiKeyInput').value;
-                const updatedKey = updateAPIKey(newKey);
-                if(updatedKey) GEMINI_API_KEY = updatedKey;
-            });
-            
-            // Botão Histórico
             document.getElementById('backToHomeFromHistory').addEventListener('click', backToHome);
+            flashcardButton.addEventListener('click', generateFlashcards);
         }
-
-        // --- FUNÇÕES DE CONTROLE DO EXAME ---
 
         function selectExam(card) {
             examCards.forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
-            const examType = card.dataset.exam;
-            currentExam = examData[examType];
+            currentExam = examData[card.dataset.exam];
             startButton.classList.add('active');
             startButton.textContent = `Iniciar ${currentExam.title}`;
         }
 
         function startExam() {
             if (!currentExam) return;
-            examSelection.style.display = 'none';
-            quizContainer.style.display = 'block';
-            examTitle.textContent = currentExam.title;
-            timeRemaining = currentExam.timeLimit * 60;
-            examStartTime = new Date();
-            userAnswers = {};
-            currentQuestionIndex = 0;
-            startTimer();
-            renderQuestion();
-            updateProgress();
+            examSelection.style.display = 'none'; quizContainer.style.display = 'block';
+            examTitle.textContent = currentExam.title; timeRemaining = currentExam.timeLimit * 60;
+            examStartTime = new Date(); userAnswers = {}; currentQuestionIndex = 0; weakTopics = [];
+            startTimer(); renderQuestion(); updateProgress();
         }
 
         function startTimer() {
             timerInterval = setInterval(() => {
-                timeRemaining--;
-                updateTimerDisplay();
-                if (timeRemaining <= 0) {
-                    clearInterval(timerInterval);
-                    finishExam();
-                }
+                timeRemaining--; updateTimerDisplay();
+                if (timeRemaining <= 0) { clearInterval(timerInterval); finishExam(); }
             }, 1000);
         }
 
         function updateTimerDisplay() {
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const minutes = Math.floor(timeRemaining / 60), seconds = timeRemaining % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
-        
-        // --- RENDERIZAÇÃO E NAVEGAÇÃO DAS QUESTÕES ---
 
         function renderQuestion() {
             const question = currentExam.questions[currentQuestionIndex];
             const isLastQuestion = currentQuestionIndex === currentExam.questions.length - 1;
             questionCounter.textContent = `Questão ${currentQuestionIndex + 1} de ${currentExam.questions.length}`;
-            
-            let questionHTML = `
-                <div class="question-header">
-                    <span class="question-number">Questão ${currentQuestionIndex + 1}</span>
-                    <span class="question-type">${question.type === 'multipla_escolha' ? 'Múltipla Escolha' : 'Discursiva'}</span>
-                    <button class="ai-hint-button" onclick="getAIHint(this)">💡 Pedir Dica da IA</button>
-                </div>
-                <div class="question-text">${question.text}</div>
-                <div id="aiHintBox-${question.id}" class="ai-hint-box" style="display: none;"></div>
-            `;
-
+            let html = `<div class="question-header">
+                <span class="question-number">Questão ${currentQuestionIndex + 1}</span>
+                <span class="question-type">${question.type === 'multipla_escolha' ? 'Múltipla Escolha' : 'Discursiva'}</span>
+                <button class="ai-hint-button" onclick="getAIHint(this)">💡 Pedir Dica da IA</button>
+            </div>
+            <div class="question-text">${question.text}</div>
+            <div id="aiHintBox-${question.id}" class="ai-hint-box" style="display: none;"></div>`;
             if (question.type === 'multipla_escolha') {
-                questionHTML += '<div class="options-container">';
+                html += '<div class="options-container">';
                 question.options.forEach((option, index) => {
                     const letter = String.fromCharCode(65 + index);
-                    const isSelected = userAnswers[question.id] === letter;
-                    questionHTML += `
-                        <div class="option ${isSelected ? 'selected' : ''}" data-option="${letter}">
-                            <div class="option-letter">${letter}</div>
-                            <div class="option-text">${option}</div>
-                        </div>
-                    `;
+                    html += `<div class="option ${userAnswers[question.id] === letter ? 'selected' : ''}" data-option="${letter}">
+                        <div class="option-letter">${letter}</div><div class="option-text">${option}</div></div>`;
                 });
-                questionHTML += '</div>';
+                html += '</div>';
             } else {
-                const savedAnswer = userAnswers[question.id] || '';
-                questionHTML += `<textarea class="essay-textarea" placeholder="Digite sua resposta aqui..." data-question="${question.id}">${savedAnswer}</textarea>`;
+                html += `<textarea class="essay-textarea" placeholder="Digite sua resposta aqui...">${userAnswers[question.id] || ''}</textarea>`;
             }
-
-            questionContainer.innerHTML = questionHTML;
-            questionContainer.classList.add('fade-in');
-
-            // Adiciona event listeners para as opções ou textarea
+            questionContainer.innerHTML = html;
+            questionContainer.classList.remove('fade-in');
+            setTimeout(() => questionContainer.classList.add('fade-in'), 10);
             if (question.type === 'multipla_escolha') {
-                document.querySelectorAll('.option').forEach(option => {
-                    option.addEventListener('click', () => selectOption(option));
-                });
+                document.querySelectorAll('.option').forEach(opt => opt.addEventListener('click', () => selectOption(opt)));
             } else {
-                document.querySelector('.essay-textarea').addEventListener('input', (e) => {
-                    userAnswers[question.id] = e.target.value;
-                });
+                document.querySelector('.essay-textarea').addEventListener('input', (e) => userAnswers[question.id] = e.target.value);
             }
-
-            // Atualiza botões de navegação
             prevButton.disabled = currentQuestionIndex === 0;
             nextButton.style.display = isLastQuestion ? 'none' : 'inline-block';
             finishButton.style.display = isLastQuestion ? 'inline-block' : 'none';
         }
-        
-        function selectOption(optionElement) {
-            const questionId = currentExam.questions[currentQuestionIndex].id;
-            const selectedOption = optionElement.dataset.option;
+
+        function selectOption(el) {
+            const id = currentExam.questions[currentQuestionIndex].id;
+            userAnswers[id] = el.dataset.option;
             document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-            optionElement.classList.add('selected');
-            userAnswers[questionId] = selectedOption;
+            el.classList.add('selected');
         }
 
-        function previousQuestion() {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                renderQuestion();
-                updateProgress();
-            }
+        function previousQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); updateProgress(); } }
+        function nextQuestion() { if (currentQuestionIndex < currentExam.questions.length - 1) { currentQuestionIndex++; renderQuestion(); updateProgress(); } }
+        function updateProgress() { progressFill.style.width = `${((currentQuestionIndex + 1) / currentExam.questions.length) * 100}%`; }
+        
+        async function callGemini(prompt, modelUrl) {
+            const response = await fetch(`${modelUrl}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            if (!response.ok) throw new Error(`Erro da API: ${response.status} ${response.statusText}`);
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
         }
-
-        function nextQuestion() {
-            if (currentQuestionIndex < currentExam.questions.length - 1) {
-                currentQuestionIndex++;
-                renderQuestion();
-                updateProgress();
-            }
-        }
-
-        function updateProgress() {
-            const progress = ((currentQuestionIndex + 1) / currentExam.questions.length) * 100;
-            progressFill.style.width = `${progress}%`;
-        }
-
-        // --- FUNÇÕES DA API GEMINI ---
 
         async function getAIHint(button) {
-            if (!GEMINI_API_KEY || GEMINI_API_KEY === "COLE_SUA_CHAVE_AQUI") {
-                alert("Por favor, configure sua chave da API Gemini na tela inicial.");
-                return;
-            }
-
             const question = currentExam.questions[currentQuestionIndex];
             const hintBox = document.getElementById(`aiHintBox-${question.id}`);
-            
             button.disabled = true;
             hintBox.style.display = 'block';
             hintBox.innerHTML = '<div class="spinner"></div><p>Gerando dica...</p>';
-
-            const prompt = `Sou um estudante de Psicologia fazendo um simulado para o ENADE. Analise a seguinte questão do simulado: "${question.text.replace(/<[^>]*>/g, '')}". Forneça apenas dicas, caminhos de raciocínio, e contextos teóricos relevantes. NÃO entregue a resposta final nem indique qual alternativa está correta.`;
-
+            const prompt = `Sou um estudante de Psicologia. Analise a seguinte questão: "${question.text.replace(/<[^>]*>/g, '')}". Forneça apenas dicas e caminhos de raciocínio, sem entregar a resposta final.`;
             try {
-                const response = await fetch(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-goog-api-key': GEMINI_API_KEY },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-
-                if (!response.ok) throw new Error(`Erro da API: ${response.status}`);
-                
-                const data = await response.json();
-                const hintText = data.candidates[0].content.parts[0].text;
-                hintBox.innerHTML = hintText.replace(/\n/g, '<br>');
-
+                hintBox.innerHTML = (await callGemini(prompt, GEMINI_FLASH_API_URL)).replace(/\n/g, '<br>');
             } catch (error) {
-                console.error('Erro ao buscar dica da IA:', error);
-                hintBox.innerHTML = '<p style="color: var(--error-color);">Não foi possível obter a dica. Verifique sua chave da API e a conexão.</p>';
+                console.error('Erro ao buscar dica:', error);
+                hintBox.innerHTML = '<p style="color: var(--error-color);">Não foi possível obter a dica. Tente novamente.</p>';
                 button.disabled = false;
             }
         }
         
-        async function getGeminiAnalysis(examDataForAnalysis, stats) {
-            if (!GEMINI_API_KEY || GEMINI_API_KEY === "COLE_SUA_CHAVE_AQUI") {
-                return `<h3 style="color: var(--error-color);">Análise Indisponível</h3><p>A análise detalhada com IA não pôde ser gerada pois a chave da API Gemini não foi configurada. Seus resultados básicos foram salvos.</p>`;
-            }
-            
-            const prompt = `Você é um tutor especialista em Psicologia para o exame ENADE. Analise o seguinte resultado de um simulado e forneça um feedback construtivo.
-            
-            **Dados do Simulado:**
-            - Tipo de Prova: ${examDataForAnalysis.examType}
-            - Tempo Gasto: ${stats.timeSpent} minutos
-            - Questões Objetivas: ${stats.correctAnswers} de ${stats.totalMultipleChoice} corretas (${stats.score}% de aproveitamento).
-            - Questões Discursivas Respondidas: ${stats.essayQuestions} de ${stats.totalEssayQuestions}.
-
-            **Respostas do Usuário:**
-            ${JSON.stringify(examDataForAnalysis.answers, null, 2)}
-
-            **Gabarito e Temas das Questões:**
-            ${JSON.stringify(examDataForAnalysis.questions.map(q => ({ id: q.id, type: q.type, text: q.text.substring(0, 50)+'...', correct: q.type === 'multipla_escolha' ? String.fromCharCode(65 + q.correct) : 'N/A' })), null, 2)}
-
-            **Sua Tarefa:**
-            1. **Diagnóstico Geral:** Comente sobre o desempenho geral, considerando o aproveitamento e o tempo.
-            2. **Análise de Pontos Fortes e Fracos:** Identifique os temas onde o aluno foi bem e onde precisa melhorar, com base nas respostas corretas e incorretas.
-            3. **Avaliação das Respostas Discursivas:** Se houver respostas discursivas, avalie a qualidade, a profundidade e a clareza. Ofereça sugestões específicas de melhoria. Se não respondeu, aponte a importância de praticar.
-            4. **Plano de Estudo Sugerido:** Crie um plano de estudo simples e direcionado para as áreas de maior dificuldade.
-
-            **Formato da Resposta:**
-            Use HTML para formatar sua resposta. Utilize títulos com <h3>, parágrafos com <p>, listas com <ul> e <li>, e use <strong> para destacar pontos importantes. Mantenha um tom encorajador e educativo.`;
-
-            try {
-                const response = await fetch(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-goog-api-key': GEMINI_API_KEY },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                if (!response.ok) throw new Error(`Erro da API: ${response.status}`);
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                console.error("Erro na análise do Gemini:", error);
-                return `<h3 style="color: var(--error-color);">Erro na Análise</h3><p>Ocorreu um erro ao tentar gerar a análise detalhada. Verifique sua chave de API e tente novamente. Seus resultados foram salvos.</p>`;
-            }
-        }
-        
-        // --- FINALIZAÇÃO E RESULTADOS ---
-
-        function finishExam() {
-            clearInterval(timerInterval);
-            quizContainer.style.display = 'none';
-            resultsContainer.style.display = 'block';
-            processResults();
-        }
+        function finishExam() { clearInterval(timerInterval); quizContainer.style.display = 'none'; resultsContainer.style.display = 'block'; processResults(); }
 
         async function processResults() {
-            const loadingMessage = document.getElementById('loadingMessage');
-            const resultsContent = document.getElementById('resultsContent');
-            loadingMessage.style.display = 'block';
-            resultsContent.style.display = 'none';
-
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            flashcardButton.style.display = 'none'; downloadAnalysisButton.style.display = 'none'; downloadFlashcardsButton.style.display = 'none';
+            
             const stats = calculateBasicStats();
             saveExamResult(stats);
             
-            const examDataForAnalysis = {
-                examType: currentExam.title,
-                questions: currentExam.questions,
-                answers: userAnswers,
-            };
-            
-            const aiAnalysis = await getGeminiAnalysis(examDataForAnalysis, stats);
-            displayResults(stats, aiAnalysis);
+            const prompt = `Você é um professor especialista em ENADE de Psicologia. Analise o desempenho do aluno nesta prova:
+            - Tipo de prova: ${currentExam.title}
+            - Tempo gasto: ${stats.timeSpent} minutos
+            - Questões objetivas: ${stats.correctAnswers} de ${stats.totalMultipleChoice} corretas (${stats.score}% de aproveitamento)
+            - Questões discursivas respondidas: ${stats.essayQuestions} de ${stats.totalEssayQuestions}
+            - Respostas do aluno: ${JSON.stringify(userAnswers)}
+            - Questões da prova (resumo e gabarito): ${JSON.stringify(currentExam.questions.map(q => ({id: q.id, text: q.text.substring(0, 80)+'...', correct: q.type === 'multipla_escolha' ? String.fromCharCode(65 + q.correct) : 'N/A'})))}
+            Com base nesses dados, faça uma análise detalhada:
+            1. Diagnóstico geral do desempenho.
+            2. Pontos fortes (com base nos temas em que acertou).
+            3. Pontos fracos (com base nos erros e dificuldades).
+            4. Recomendações de estudo personalizadas.
+            5. Sugira uma rotina de estudo para os próximos dias.
+            Formate o resultado em HTML organizado e colorido (com títulos, subtítulos, listas e negrito).`;
+
+            try {
+                const aiAnalysis = await callGemini(prompt, GEMINI_PRO_API_URL);
+                displayResults(stats, aiAnalysis);
+            } catch(error) {
+                console.error("Erro na análise do Gemini:", error);
+                displayResults(stats, `<h3 style="color: var(--error-color);">Erro na Análise</h3><p>Ocorreu um erro ao gerar a análise detalhada. Seus resultados foram salvos.</p>`);
+            }
         }
 
         function calculateBasicStats() {
-            let correctAnswers = 0;
-            let totalMultipleChoice = 0;
-            let essayQuestions = 0;
-            let totalEssayQuestions = 0;
-
+            let correctAnswers = 0, totalMultipleChoice = 0, essayQuestions = 0, totalEssayQuestions = 0;
+            weakTopics = [];
             currentExam.questions.forEach(q => {
                 if (q.type === 'multipla_escolha') {
                     totalMultipleChoice++;
                     const userAnswer = userAnswers[q.id];
                     const correctAnswer = String.fromCharCode(65 + q.correct);
-                    if (userAnswer === correctAnswer) correctAnswers++;
+                    if (userAnswer === correctAnswer) { correctAnswers++; } 
+                    else { weakTopics.push(q.text); }
                 } else {
                     totalEssayQuestions++;
-                    if (userAnswers[q.id] && userAnswers[q.id].trim() !== '') {
-                        essayQuestions++;
-                    }
+                    if (userAnswers[q.id] && userAnswers[q.id].trim() !== '') { essayQuestions++; }
+                    else { weakTopics.push(q.text); }
                 }
             });
-
-            const score = totalMultipleChoice > 0 ? (correctAnswers / totalMultipleChoice) * 100 : 0;
+            const score = totalMultipleChoice > 0 ? Math.round((correctAnswers / totalMultipleChoice) * 100) : 0;
             const timeSpent = Math.round((new Date() - examStartTime) / 1000 / 60);
-
-            return { score: Math.round(score), correctAnswers, totalMultipleChoice, essayQuestions, totalEssayQuestions, timeSpent };
+            return { score, correctAnswers, totalMultipleChoice, essayQuestions, totalEssayQuestions, timeSpent };
         }
 
         function displayResults(stats, aiAnalysis) {
             document.getElementById('loadingMessage').style.display = 'none';
             const resultsContent = document.getElementById('resultsContent');
             resultsContent.style.display = 'block';
+            resultsContent.innerHTML = `<div class="score-summary">
+                <div class="score-card"><div class="score-value">${stats.score}%</div><div class="score-label">Aproveitamento</div></div>
+                <div class="score-card"><div class="score-value">${stats.correctAnswers}/${stats.totalMultipleChoice}</div><div class="score-label">Acertos</div></div>
+                <div class="score-card"><div class="score-value">${stats.essayQuestions}/${stats.totalEssayQuestions}</div><div class="score-label">Discursivas</div></div>
+                <div class="score-card"><div class="score-value">${stats.timeSpent}min</div><div class="score-label">Tempo Gasto</div></div>
+            </div>${aiAnalysis}`;
+            flashcardButton.style.display = 'inline-flex';
+            downloadAnalysisButton.style.display = 'inline-flex';
+        }
 
-            resultsContent.innerHTML = `
-                <div class="score-summary">
-                    <div class="score-card">
-                        <div class="score-value">${stats.score}%</div>
-                        <div class="score-label">Aproveitamento</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-value">${stats.correctAnswers}/${stats.totalMultipleChoice}</div>
-                        <div class="score-label">Acertos</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-value">${stats.essayQuestions}/${stats.totalEssayQuestions}</div>
-                        <div class="score-label">Discursivas</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-value">${stats.timeSpent}min</div>
-                        <div class="score-label">Tempo Gasto</div>
-                    </div>
-                </div>
-                ${aiAnalysis}
-            `;
+        async function generateFlashcards() {
+            flashcardButton.disabled = true;
+            flashcardButton.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width: 2px; margin: 0 auto;"></div>';
+            flashcardsContainer.style.display = 'block';
+            const flashcardsContent = document.getElementById('flashcardsContent');
+            flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>';
+            
+            const prompt = `Você é um especialista em educação. Crie flashcards de estudo a partir dos pontos em que o aluno teve mais dificuldades nesta prova de Psicologia. Use os seguintes enunciados de questões erradas como base: ${JSON.stringify(weakTopics)}. Inclua no mínimo 10 flashcards, organizados no formato:
+            - Frente: Pergunta ou conceito-chave
+            - Verso: Explicação resumida e clara
+            Priorize os temas em que o aluno errou ou apresentou baixo desempenho. Formate a resposta final em HTML, usando divs com as classes 'flashcard', 'flashcard-front' e 'flashcard-back'.`;
+
+            try {
+                const flashcardsHTML = await callGemini(prompt, GEMINI_PRO_API_URL);
+                flashcardsContent.innerHTML = flashcardsHTML;
+                downloadFlashcardsButton.style.display = 'inline-flex';
+            } catch(error) {
+                console.error("Erro ao gerar flashcards:", error);
+                flashcardsContent.innerHTML = `<p style="color: var(--error-color);">Não foi possível gerar os flashcards. Tente novamente.</p>`;
+            }
+            flashcardButton.style.display = 'none';
         }
         
-        // --- FUNÇÕES DE HISTÓRICO E AÇÕES ---
-
         function saveExamResult(stats) {
             const result = {
-                id: Date.now(),
-                examType: currentExam.title,
-                date: new Date().toLocaleString('pt-BR'),
-                score: stats.score,
-                correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`,
-                timeSpent: stats.timeSpent
+                id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
+                score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
             };
             const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            history.unshift(result); // Adiciona no início
-            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20))); // Limita a 20 entradas
+            history.unshift(result);
+            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
         }
 
         function showHistory() {
             const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            const historyContent = document.getElementById('historyContent');
-            
+            const content = document.getElementById('historyContent');
             if (history.length === 0) {
-                historyContent.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
+                content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
             } else {
-                let tableHTML = `
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Prova</th>
-                                <th>Aproveitamento</th>
-                                <th>Acertos</th>
-                                <th>Tempo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
+                let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
                 history.forEach(r => {
-                    tableHTML += `
-                        <tr>
-                            <td>${r.date}</td>
-                            <td>${r.examType}</td>
-                            <td><strong>${r.score}%</strong></td>
-                            <td>${r.correct}</td>
-                            <td>${r.timeSpent} min</td>
-                        </tr>
-                    `;
+                    table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`;
                 });
-                tableHTML += '</tbody></table>';
-                historyContent.innerHTML = tableHTML;
+                table += '</tbody></table>';
+                content.innerHTML = table;
             }
-            
-            examSelection.style.display = 'none';
-            historyContainer.style.display = 'block';
+            examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
         }
 
-        function downloadPDF() {
-            alert("Função de download de PDF em desenvolvimento.");
+        function downloadContent(elementId, filename) {
+            const content = document.getElementById(elementId).innerHTML;
+            const title = document.getElementById('examTitle').textContent;
+            const header = `<h1>Relatório ENADE-Psi: ${title}</h1><h2>Data: ${new Date().toLocaleString('pt-BR')}</h2><hr>`;
+            const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family: Arial, sans-serif; line-height: 1.5; padding: 20px;} h1,h2,h3{color: #333;} .score-summary{display:flex; gap: 15px; margin-bottom: 20px;} .score-card{border:1px solid #ccc; border-radius:8px; padding:15px; text-align:center; flex-grow:1;} .score-value{font-size: 2em; font-weight: bold;} .flashcard{border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; padding: 15px;} .flashcard-front{font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px;} </style></head><body>${header}${content}</body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `${filename}.html`; a.click();
+            URL.revokeObjectURL(url);
+            alert("Seu relatório será baixado como um arquivo HTML. Para salvar como PDF, abra o arquivo e use a função 'Imprimir' (Ctrl+P) do seu navegador, selecionando 'Salvar como PDF'.");
         }
 
         function startNewExam() {
-            currentExam = null;
-            clearInterval(timerInterval);
-            resultsContainer.style.display = 'none';
-            examSelection.style.display = 'block';
+            currentExam = null; clearInterval(timerInterval);
+            resultsContainer.style.display = 'none'; examSelection.style.display = 'block';
+            flashcardsContainer.style.display = 'none'; document.getElementById('flashcardsContent').innerHTML = '';
             examCards.forEach(card => card.classList.remove('selected'));
-            startButton.classList.remove('active');
-            startButton.textContent = 'Iniciar Simulado';
+            startButton.classList.remove('active'); startButton.textContent = 'Iniciar Simulado';
         }
 
-        function backToHome() {
-            startNewExam();
-            historyContainer.style.display = 'none';
-        }
+        function backToHome() { startNewExam(); historyContainer.style.display = 'none'; }
         
-        // --- Prevenir fechamento acidental ---
         window.addEventListener('beforeunload', function(e) {
-            if (quizContainer.style.display === 'block') {
-                e.preventDefault();
-                e.returnValue = 'Você tem certeza que deseja sair? Seu progresso será perdido.';
-                return 'Você tem certeza que deseja sair? Seu progresso será perdido.';
+            if (quizContainer.style.display === 'block' || resultsContainer.style.display === 'block') {
+                const msg = 'Não esqueça de baixar seus resultados e flashcards para continuar estudando! Seu progresso atual será perdido se você sair.';
+                (e || window.event).returnValue = msg;
+                return msg;
             }
         });
     </script>
 </body>
-</html>
+</html>```
