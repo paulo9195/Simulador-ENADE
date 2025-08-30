@@ -1,18 +1,1 @@
-# netlify.toml
 
-# Configurações de Build
-[build]
-  # Comando a ser executado durante o deploy.
-  command = "echo 'Nenhum build necessário. Apenas arquivos estáticos.'"
-  
-  # Diretório que contém os arquivos estáticos do site (HTML, CSS, JS, etc.)
-  publish = "public"
-  
-  # Diretório onde as funções serverless (API) estão localizadas
-  functions = "api"
-
-# Redirecionamento para as funções da API
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
