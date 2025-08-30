@@ -1,17 +1,18 @@
-{
-  "name": "enade-psi-simulator",
-  "version": "1.0.0",
-  "description": "Simulador para a prova do ENADE de Psicologia com análise de IA.",
-  "main": "index.js",
-  "scripts": {
+# netlify.toml
+
+# Configurações de Build
+[build]
+  # Diretório que contém os arquivos estáticos do site (HTML, CSS, JS, etc.)
+  publish = "public"
+  
+  # Diretório onde as funções serverless (API) estão localizadas
+  functions = "api"
+  {
     "build": "echo 'Nenhum build necessário. Apenas arquivos estáticos.'"
   },
-  "keywords": [
-    "enade",
-    "psicologia",
-    "simulador",
-    "gemini"
-  ],
-  "author": "Seu Nome",
-  "license": "ISC"
-}
+
+# Redirecionamento para as funções da API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
