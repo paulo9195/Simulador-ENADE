@@ -27,8 +27,8 @@
             background: var(--bg-primary); border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden; min-height: 600px; margin-bottom: 40px;
         }
-        .exam-selection, .history-container { padding: 40px; text-align: center; }
-        .exam-selection h2, .history-container h2 { font-size: 2rem; margin-bottom: 30px; color: var(--text-primary); }
+        .exam-selection { padding: 40px; text-align: center; }
+        .exam-selection h2 { font-size: 2rem; margin-bottom: 30px; color: var(--text-primary); }
         .exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .exam-card {
             background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 15px;
@@ -104,9 +104,6 @@
         .score-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .score-value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
         .score-label { color: var(--text-secondary); margin-top: 5px; }
-        .history-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        .history-table th, .history-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .history-table th { background: var(--bg-secondary); color: var(--text-primary); }
         .action-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
         .action-button {
             background: var(--primary-color); color: white; border: none; padding: 12px 25px;
@@ -115,7 +112,7 @@
         }
         .action-button:hover { background: var(--secondary-color); transform: translateY(-2px); }
         .download-button { background: linear-gradient(135deg, var(--warning-color), #f97316); }
-        .history-button, .notebooklm-button, .flashcard-button { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
+        .notebooklm-button, .flashcard-button { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
         .flashcards-container { margin-top: 30px; }
         .flashcard { background: white; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 15px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .flashcard-front, .flashcard-back { padding-bottom: 10px; }
@@ -166,7 +163,7 @@
                 </div>
                 <div class="action-buttons">
                     <button id="startButton" class="start-button">Iniciar Simulado</button>
-                    <button id="historyButton" class="action-button history-button">📊 Ver Histórico</button>
+                    <!-- Botão de Histórico Removido -->
                     <a href="https://notebooklm.google.com/notebook/70c43d36-c741-44ea-9303-51470fbbd107" target="_blank" class="action-button notebooklm-button">🚀 NotebookLM Especialista</a>
                 </div>
             </div>
@@ -215,14 +212,7 @@
                 </div>
             </div>
             
-            <!-- Container do Histórico -->
-            <div id="historyContainer" class="history-container" style="display: none;">
-                <h2>Histórico de Desempenho</h2>
-                <div id="historyContent"></div>
-                <div class="action-buttons">
-                    <button id="backToHomeFromHistory" class="action-button">🏠 Voltar ao Início</button>
-                </div>
-            </div>
+            <!-- Container do Histórico Removido -->
         </div>
     </div>
     <footer>
@@ -232,87 +222,47 @@
     <script>
         // --- CONFIGURAÇÃO DA API GEMINI ---
         const GEMINI_API_KEY = "AIzaSyCysbzil5GfHYmgtPh_ZhYKIeaD5CURQnk";
-        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
         // --- BANCO DE QUESTÕES ---
         const allQuestions = {
             formacao_geral: [
                 { id: "FG_M1", type: "multipla_escolha", text: `A Declaração Universal dos Direitos Humanos (1948) estabelece que "todos os seres humanos nascem livres e iguais em dignidade e em direitos". No contexto brasileiro, qual dos seguintes desafios representa uma violação direta desse princípio?`, options: ["A alta carga tributária.", "A desigualdade racial e social.", "A burocracia para novas empresas.", "A polarização política.", "A complexidade do sistema eleitoral."], correct: 1 },
                 { id: "FG_M2", type: "multipla_escolha", text: `O conceito de "Indústria 4.0" refere-se à quarta revolução industrial. Qual das seguintes opções é uma consequência social direta dessa revolução?`, options: ["Aumento da produção agrícola familiar.", "Valorização de profissões manuais.", "A necessidade de requalificação profissional.", "Diminuição do uso da internet.", "O fim da automação."], correct: 2 },
-                { id: "FG_M3", type: "multipla_escolha", text: `O princípio da equidade no SUS visa:`, options: ["Oferecer o mesmo tratamento para todos.", "Priorizar hospitais privados.", "Diminuir as desigualdades, investindo mais onde a carência é maior.", "Limitar o acesso de estrangeiros.", "Cobrar pelos serviços de acordo com a renda."], correct: 2 },
-                { id: "FG_M4", type: "multipla_escolha", text: `Uma política de inclusão eficaz em uma organização deve promover:`, options: ["Metas de diversidade sem alterar a cultura.", "Um ambiente que valorize as diferenças e garanta equidade.", "A separação de equipes por afinidade.", "A padronização de comportamentos.", "Foco exclusivo em competências técnicas."], correct: 1 },
-                { id: "FG_M5", type: "multipla_escolha", text: `O Antropoceno é a época geológica atual, marcada pelo impacto humano. Qual fenômeno é a evidência mais marcante do Antropoceno?`, options: ["Variações do campo magnético da Terra.", "Ciclos de eras glaciais.", "Movimentação das placas tectônicas.", "Mudanças climáticas globais aceleradas.", "Ocorrência de eclipses."], correct: 3 },
-                { id: "FG_M6", type: "multipla_escolha", text: `O Estatuto da Criança e do Adolescente (ECA) preconiza a doutrina da proteção integral. Isso significa que crianças e adolescentes são:`, options: ["Propriedade dos pais.", "Incapazes de opinar.", "Sujeitos de direitos com prioridade absoluta.", "Adultos em miniatura.", "Problema da segurança pública."], correct: 2 },
-                { id: "FG_M7", type: "multipla_escolha", text: `A globalização é um processo de intensificação das trocas globais. Uma de suas consequências culturais é:`, options: ["O isolamento das culturas locais.", "A homogeneização cultural e difusão de padrões de consumo globais.", "O desaparecimento das línguas locais.", "A proibição de manifestações culturais.", "A redução do acesso à informação."], correct: 1 },
-                { id: "FG_M8", type: "multipla_escolha", text: `O conceito de "lugar de fala" refere-se à ideia de que:`, options: ["Apenas um grupo pode falar sobre suas experiências.", "A posição social de um indivíduo influencia sua perspectiva e legitimidade.", "Todas as opiniões têm o mesmo valor.", "O debate deve ser restrito a especialistas.", "A liberdade de expressão é absoluta."], correct: 1 },
-                { id: "FG_M9", type: "multipla_escolha", text: `A Lei Geral de Proteção de Dados (LGPD) no Brasil tem como objetivo principal:`, options: ["Aumentar a coleta de dados pelas empresas.", "Proteger os direitos de liberdade e privacidade dos cidadãos.", "Facilitar a venda de dados sem consentimento.", "Restringir o acesso dos cidadãos às suas informações.", "Permitir monitoramento governamental online."], correct: 1 },
-                { id: "FG_M10", type: "multipla_escolha", text: `O envelhecimento da população é uma tendência demográfica no Brasil. Qual é uma implicação direta para as políticas públicas?`, options: ["Reduzir investimentos em educação infantil.", "Diminuição da demanda por saúde.", "Reformar a previdência e ampliar cuidados com a saúde do idoso.", "Queda nos preços de imóveis.", "Aumento da taxa de natalidade."], correct: 2 },
-                { id: "FG_M11", type: "multipla_escolha", text: `Qual das seguintes atividades é um exemplo de Economia Criativa?`, options: ["Extração de minério.", "Produção de soja.", "Desenvolvimento de software e games.", "Fabricação de automóveis.", "Construção civil."], correct: 2 },
-                { id: "FG_M12", type: "multipla_escolha", text: `O conceito de interseccionalidade sugere que:`, options: ["As opressões (racismo, sexismo) são independentes.", "Cada indivíduo pertence a um único grupo social.", "As opressões se sobrepõem, criando experiências únicas de discriminação.", "A classe social é o único fator determinante da desigualdade.", "A opressão de gênero é a mais importante."], correct: 2 },
-                { id: "FG_M13", type: "multipla_escolha", text: `O Objetivo de Desenvolvimento Sustentável (ODS) "Educação de Qualidade" implica:`, options: ["Garantir que todos completem o ensino primário.", "Assegurar educação inclusiva, equitativa e de qualidade para todos.", "Focar exclusivamente em ciências e matemática.", "Privatizar todo o sistema educacional.", "Reduzir o salário dos professores."], correct: 1 },
-                { id: "FG_M14", type: "multipla_escolha", text: `Uma solução sustentável para o desafio da mobilidade urbana nas metrópoles brasileiras envolve:`, options: ["Incentivar o transporte individual motorizado.", "Priorizar transporte público de qualidade, ciclovias e pedestres.", "Aumentar o preço dos combustíveis sem alternativas.", "Restringir a circulação de pessoas no centro.", "Construir mais estacionamentos."], correct: 1 },
-                { id: "FG_M15", type: "multipla_escolha", text: `O que caracteriza um Estado Democrático de Direito?`, options: ["Poder concentrado em um único líder.", "Soberania popular, império da lei e respeito aos direitos fundamentais.", "Ausência de leis.", "Submissão do judiciário ao executivo.", "Eleições sem garantias de liberdade."], correct: 1 },
                 { id: "FG_D1", type: "discursiva", text: `<strong>TEXTO 1</strong><br>O Relatório Mundial sobre Desigualdade de Gênero 2023 do Fórum Econômico Mundial aponta que, no ritmo atual, serão necessários 131 anos para atingir a paridade total de gênero. <strong>TEXTO 2</strong><br>No Brasil, a Lei Maria da Penha é um marco na luta contra a violência doméstica, mas os índices de feminicídio permanecem alarmantes.<br><br>Com base nos textos, disserte sobre a persistência da desigualdade de gênero no Brasil, abordando: a) a relação entre desigualdade estrutural e violência; b) o papel da educação na desconstrução de estereótipos.` },
-                { id: "FG_D2", type: "discursiva", text: `A disseminação de notícias falsas (fake news) é um desafio para as democracias. Analise o fenômeno, considerando: a) os mecanismos psicossociais que contribuem para sua propagação (viés de confirmação, bolhas informacionais); b) as consequências para o debate público e a confiança nas instituições.` },
             ],
             componente_especifico: [
                 { id: "CE_M1", type: "multipla_escolha", text: `No Behaviorismo Radical, um comportamento fortalecido pela remoção de um estímulo aversivo é exemplo de:`, options: ["Reforço positivo.", "Punição positiva.", "Punição negativa.", "Reforço negativo.", "Extinção."], correct: 3 },
                 { id: "CE_M2", type: "multipla_escolha", text: `Segundo Piaget, a capacidade de pensar de forma abstrata e hipotético-dedutiva é característica do estágio:`, options: ["Sensório-motor.", "Pré-operatório.", "Operatório concreto.", "Operatório formal.", "Pós-formal."], correct: 3 },
-                { id: "CE_M3", type: "multipla_escolha", text: `A validade de um teste psicológico refere-se:`, options: ["À consistência dos seus resultados.", "À padronização de sua aplicação.", "Ao grau em que o teste mede o que se propõe a medir.", "À existência de normas de referência.", "À facilidade de aplicação."], correct: 2 },
-                { id: "CE_M4", type: "multipla_escolha", text: `Na teoria de Carl Rogers, a congruência do terapeuta refere-se a:`, options: ["Ser autêntico e genuíno na relação.", "Compreender o mundo interno do cliente.", "Aceitar o cliente sem julgamento.", "Interpretar os sonhos do cliente.", "Usar dessensibilização sistemática."], correct: 0 },
-                { id: "CE_M5", type: "multipla_escolha", text: `Na teoria de Vygotsky, o conceito que descreve a distância entre o que a criança faz sozinha e o que faz com ajuda é a:`, options: ["Acomodação.", "Zona de Desenvolvimento Proximal (ZDP).", "Equilibração.", "Assimilação.", "Maturação."], correct: 1 },
-                { id: "CE_M6", type: "multipla_escolha", text: `Qual abordagem em psicologia social enfatiza o estudo de como as pessoas percebem, pensam e lembram de informações sobre os outros?`, options: ["Behaviorismo Social.", "Psicanálise.", "Psicologia Humanista.", "Cognição Social.", "Análise Institucional."], correct: 3 },
-                { id: "CE_M7", type: "multipla_escolha", text: `A abordagem do DSM-5 é primariamente:`, options: ["Etiológica.", "Psicanalítica.", "Descritiva e categorial.", "Fenomenológica.", "Sistêmica."], correct: 2 },
-                { id: "CE_M8", type: "multipla_escolha", text: `O fenômeno do 'groupthink' (pensamento de grupo) caracteriza-se por:`, options: ["Debate aberto e crítico.", "Busca por unanimidade que suprime a avaliação crítica.", "Fragmentação do grupo.", "Dificuldade em chegar a uma decisão.", "Influência de um especialista externo."], correct: 1 },
-                { id: "CE_M9", type: "multipla_escolha", text: `Na Teoria do Apego de Bowlby, um apego seguro é caracterizado por:`, options: ["Ansiedade na separação e raiva no retorno.", "A criança explora com confiança e busca conforto no cuidador.", "Pouca preferência entre cuidador e estranho.", "A criança evita o contato com o cuidador.", "Dependência excessiva do cuidador."], correct: 1 },
-                { id: "CE_M10", type: "multipla_escolha", text: `Qual das seguintes opções descreve um princípio da Gestalt-Terapia?`, options: ["Análise da transferência.", "Uso da associação livre.", "Ênfase no aqui-e-agora e na awareness.", "Reestruturação de crenças irracionais.", "Condicionamento de novas respostas."], correct: 2 },
-                { id: "CE_M11", type: "multipla_escolha", text: `A precisão (fidedignidade) de um teste refere-se:`, options: ["À capacidade de prever um desempenho.", "À consistência dos escores em retestagem.", "À representatividade dos itens.", "Ao grau em que mede o que se propõe.", "À objetividade na correção."], correct: 1 },
-                { id: "CE_M12", type: "multipla_escolha", text: `Na psicanálise, a resolução do complexo de Édipo implica:`, options: ["Manutenção do desejo incestuoso.", "Identificação com o progenitor do mesmo sexo.", "Rejeição de ambos os pais.", "Fixação na fase oral.", "Negação da sexualidade infantil."], correct: 1 },
-                { id: "CE_M13", type: "multipla_escolha", text: `A memória que se refere a fatos e conhecimentos gerais sobre o mundo é chamada de:`, options: ["Memória episódica.", "Memória semântica.", "Memória de procedimento.", "Memória de trabalho.", "Memória sensorial."], correct: 1 },
-                { id: "CE_M14", type: "multipla_escolha", text: `A abordagem sistêmica entende o sintoma de um indivíduo como:`, options: ["Expressão de um conflito intrapsíquico.", "Comportamento aprendido a ser extinto.", "Manifestação de uma disfunção no sistema familiar.", "Distorção cognitiva a ser reestruturada.", "Problema biológico isolado."], correct: 2 },
-                { id: "CE_M15", type: "multipla_escolha", text: `Qual processo é um exemplo de condicionamento clássico (pavloviano)?`, options: ["Rato pressiona barra para receber comida.", "Criança é elogiada por arrumar o quarto.", "Cão saliva ao som de sineta associada à comida.", "Motorista perde pontos e dirige mais devagar.", "Aluno estuda para evitar nota baixa."], correct: 2 },
                 { id: "CE_D1", type: "discursiva", text: `Um paciente de 35 anos busca terapia com queixas de ansiedade social. Descreva como a Terapia Cognitivo-Comportamental (TCC) abordaria este caso, explicando: a) o modelo cognitivo do transtorno; b) duas técnicas que poderiam ser utilizadas.` },
-                { id: "CE_D2", type: "discursiva", text: `Diferencie, do ponto de vista da psicopatologia psicanalítica, as estruturas da neurose e da psicose, abordando: a) a relação com a realidade; b) o principal mecanismo de defesa (recalque e foraclusão).` },
             ],
             pratica_profissional: [
                 { id: "PP_M1", type: "multipla_escolha", text: `Um psicólogo escolar é informado por um aluno de 14 anos que sofre violência física em casa. Qual a conduta correta?`, options: ["Manter sigilo absoluto.", "Conversar com os pais e pedir que mudem.", "Notificar imediatamente o Conselho Tutelar.", "Aconselhar o aluno a fugir.", "Ignorar a denúncia."], correct: 2 },
                 { id: "PP_M2", type: "multipla_escolha", text: `Ao elaborar um laudo psicológico para fins judiciais, o psicólogo deve:`, options: ["Usar linguagem subjetiva e jargões.", "Apresentar conclusões sobre fatos que não observou.", "Limitar-se a descrever os instrumentos.", "Fundamentar sua análise em métodos reconhecidos e ser claro e objetivo.", "Incluir informações íntimas não relevantes."], correct: 3 },
-                { id: "PP_M3", type: "multipla_escolha", text: `A atuação do psicólogo em um CAPS é pautada pelo cuidado em liberdade. Uma prática condizente é:`, options: ["Focar exclusivamente na medicação.", "Realizar apenas intervenções individuais.", "Construir um Projeto Terapêutico Singular (PTS) com o usuário e sua rede.", "Priorizar a internação psiquiátrica.", "Limitar o atendimento aos casos 'curáveis'."], correct: 2 },
-                { id: "PP_M4", type: "multipla_escolha", text: `Um psicólogo utiliza em seleção um teste sem parecer favorável no SATEPSI. Essa prática constitui:`, options: ["Decisão autônoma e aceitável.", "Falta ética, pois deve usar apenas instrumentos validados pelo CFP.", "Prática recomendada para inovar.", "Procedimento legal se a empresa autorizar.", "Questão de menor importância."], correct: 1 },
-                { id: "PP_M5", type: "multipla_escolha", text: `Um psicólogo clínico recebe um paciente com ideação suicida e planejamento. A conduta prioritária e ética é:`, options: ["Manter sigilo absoluto.", "Contatar a família ou rede de apoio para comunicar o risco, visando à proteção da vida.", "Encaminhar para psiquiatra e encerrar o caso.", "Sugerir internação e não tomar outras providências.", "Ligar para a polícia."], correct: 1 },
-                { id: "PP_M6", type: "multipla_escolha", text: `O objetivo principal da Redução de Danos, como estratégia de cuidado a usuários de drogas, é:`, options: ["Exigir abstinência imediata.", "Minimizar as consequências negativas do uso, sem necessariamente exigir abstinência.", "Punir o usuário.", "Isolar o usuário da sociedade.", "Oferecer apenas tratamento medicamentoso."], correct: 1 },
-                { id: "PP_M7", type: "multipla_escolha", text: `No contexto da psicologia jurídica, o psicólogo perito deve:`, options: ["Atuar para defender a parte que o contratou.", "Manter postura imparcial, produzindo laudo técnico e isento.", "Realizar psicoterapia com as partes.", "Aconselhar o juiz sobre a sentença.", "Omitir dados da avaliação."], correct: 1 },
-                { id: "PP_M8", type: "multipla_escolha", text: `O trabalho do psicólogo na Atenção Primária à Saúde (UBS) deve focar em:`, options: ["Psicoterapia de longa duração.", "Ações de promoção de saúde mental e prevenção, com foco na comunidade.", "Aplicação de testes para diagnóstico de transtornos graves.", "Atendimento exclusivo de encaminhamentos.", "Realização de perícias."], correct: 1 },
-                { id: "PP_M9", type: "multipla_escolha", text: `Um psicólogo é convidado para comentar um caso criminal na TV. Segundo o Código de Ética, ele deve:`, options: ["Fazer diagnósticos com base na mídia.", "Divulgar informações sigilosas.", "Promover-se profissionalmente.", "Evitar espetacularização e fornecer informações teóricas gerais.", "Recusar sempre."], correct: 3 },
-                { id: "PP_M10", type: "multipla_escolha", text: `Ao realizar a devolutiva em um psicodiagnóstico infantil, o psicólogo deve comunicar os resultados:`, options: ["Apenas para a escola.", "Apenas para a criança, em linguagem técnica.", "Primeiro aos pais e depois à criança, com linguagem acessível.", "Apenas aos pais.", "A todos ao mesmo tempo."], correct: 2 },
-                { id: "PP_M11", type: "multipla_escolha", text: `Um psicólogo do SUAS utiliza a Matriz de Risco Familiar para:`, options: ["Classificar as famílias como 'boas' ou 'ruins'.", "Decidir sobre a guarda dos filhos.", "Planejar ações e priorizar o acompanhamento de famílias em maior risco.", "Definir o valor de benefícios.", "Realizar diagnóstico psiquiátrico."], correct: 2 },
-                { id: "PP_M12", type: "multipla_escolha", text: `Um psicoterapeuta se sente atraído por um(a) paciente e considera iniciar uma relação amorosa. Essa conduta é:`, options: ["Aceitável, se o sentimento for recíproco.", "Proibida pelo Código de Ética.", "Permitida após um mês do fim da terapia.", "Uma questão pessoal.", "Aceitável, se mantida em segredo."], correct: 1 },
-                { id: "PP_M13", type: "multipla_escolha", text: `A escuta especializada (Lei nº 13.431/2017) tem o objetivo de:`, options: ["Produzir prova para o processo judicial.", "Garantir a proteção da criança/adolescente, evitando a revitimização.", "Fazer a criança confessar.", "Substituir o processo judicial.", "Realizar psicoterapia."], correct: 1 },
-                { id: "PP_M14", type: "multipla_escolha", text: `Qual ação caracteriza uma intervenção em psicologia comunitária?`, options: ["Psicoterapia individual.", "Aplicação de testes de QI.", "Desenvolvimento de um grupo de mães na comunidade a partir de uma demanda local.", "Treinamento para executivos.", "Diagnóstico e medicalização de problemas."], correct: 2 },
-                { id: "PP_M15", type: "multipla_escolha", text: `O psicólogo do esporte, ao trabalhar com uma equipe, tem como uma de suas principais funções:`, options: ["Selecionar atletas com testes de personalidade.", "Atuar como técnico.", "Desenvolver variáveis psicológicas como concentração, ansiedade e motivação.", "Realizar psicoterapia profunda.", "Garantir a dieta dos atletas."], correct: 2 },
                 { id: "PP_D1", type: "discursiva", text: `Você é psicólogo(a) em um CRAS e atende uma família cujo filho adolescente apresenta evasão escolar e atos infracionais. Descreva sua proposta de intervenção, considerando: a) a articulação com a rede (escola, Conselho Tutelar); b) uma estratégia de atuação junto à família.` },
-                { id: "PP_D2", type: "discursiva", text: `Como psicólogo(a) hospitalar em oncologia pediátrica, você atende uma criança de 8 anos em cuidados paliativos. Os pais têm dificuldade em falar sobre a morte com a filha. Descreva sua atuação, abordando: a) como facilitaria a comunicação sobre finitude; b) dois cuidados éticos.` },
             ]
         };
         
+        // Simulação com menos questões para testes rápidos
+        // Object.keys(allQuestions).forEach(key => {
+        //    allQuestions[key] = allQuestions[key].slice(0, 3); 
+        // });
+
         const examData = {
-            formacao_geral: { title: "Formação Geral", timeLimit: 60, questions: allQuestions.formacao_geral },
-            componente_especifico: { title: "Componente Específico", timeLimit: 60, questions: allQuestions.componente_especifico },
-            pratica_profissional: { title: "Prática Profissional", timeLimit: 60, questions: allQuestions.pratica_profissional },
-            prova_completa: { title: "Prova Completa", timeLimit: 120, questions: [
-                ...allQuestions.formacao_geral.filter(q => q.type === 'multipla_escolha'),
-                ...allQuestions.componente_especifico.filter(q => q.type === 'multipla_escolha'),
-                ...allQuestions.pratica_profissional.filter(q => q.type === 'multipla_escolha'),
-                ...allQuestions.formacao_geral.filter(q => q.type === 'discursiva'),
-                ...allQuestions.componente_especifico.filter(q => q.type === 'discursiva'),
-                ...allQuestions.pratica_profissional.filter(q => q.type === 'discursiva'),
+            formacao_geral: { title: "Formação Geral", timeLimit: 10, questions: allQuestions.formacao_geral },
+            componente_especifico: { title: "Componente Específico", timeLimit: 10, questions: allQuestions.componente_especifico },
+            pratica_profissional: { title: "Prática Profissional", timeLimit: 10, questions: allQuestions.pratica_profissional },
+            prova_completa: { title: "Prova Completa", timeLimit: 20, questions: [
+                ...allQuestions.formacao_geral,
+                ...allQuestions.componente_especifico,
+                ...allQuestions.pratica_profissional,
             ]}
         };
         
         let currentExam = null, currentQuestionIndex = 0, userAnswers = {}, timeRemaining = 0, timerInterval = null, examStartTime = null, weakTopics = [];
         
         const examSelection = document.getElementById('examSelection'), quizContainer = document.getElementById('quizContainer'),
-              resultsContainer = document.getElementById('resultsContainer'), historyContainer = document.getElementById('historyContainer'),
+              resultsContainer = document.getElementById('resultsContainer'),
               questionContainer = document.getElementById('questionContainer'), examCards = document.querySelectorAll('.exam-card'),
               startButton = document.getElementById('startButton'), prevButton = document.getElementById('prevButton'),
               nextButton = document.getElementById('nextButton'), finishButton = document.getElementById('finishButton'),
@@ -323,45 +273,75 @@
 
         document.addEventListener('DOMContentLoaded', initializeApp);
 
-        function initializeApp() { setupEventListeners(); console.log('ENADE-Psi 2025 Plataforma de Estudos carregada!'); }
+        function initializeApp() {
+            setupEventListeners();
+            console.log('ENADE-Psi 2025 Plataforma de Estudos carregada!');
+        }
 
         function setupEventListeners() {
             examCards.forEach(card => card.addEventListener('click', () => selectExam(card)));
             startButton.addEventListener('click', startExam);
-            prevButton.addEventListener('click', previousQuestion); nextButton.addEventListener('click', nextQuestion);
+            prevButton.addEventListener('click', previousQuestion);
+            nextButton.addEventListener('click', nextQuestion);
             finishButton.addEventListener('click', finishExam);
             downloadAnalysisButton.addEventListener('click', () => downloadPDF('resultsContent', 'analise-enade-psi'));
             downloadFlashcardsButton.addEventListener('click', () => downloadPDF('flashcardsContent', 'flashcards-enade-psi'));
             document.getElementById('newExamButton').addEventListener('click', startNewExam);
             document.getElementById('backToHomeButton').addEventListener('click', backToHome);
-            document.getElementById('historyButton').addEventListener('click', showHistory);
-            document.getElementById('backToHomeFromHistory').addEventListener('click', backToHome);
             flashcardButton.addEventListener('click', generateFlashcards);
         }
 
         function selectExam(card) {
             examCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected'); currentExam = examData[card.dataset.exam];
-            startButton.classList.add('active'); startButton.textContent = `Iniciar ${currentExam.title}`;
+            card.classList.add('selected');
+            currentExam = examData[card.dataset.exam];
+            startButton.classList.add('active');
+            startButton.textContent = `Iniciar ${currentExam.title}`;
         }
 
         function startExam() {
             if (!currentExam) return;
-            examSelection.style.display = 'none'; quizContainer.style.display = 'block';
-            examTitle.textContent = currentExam.title; timeRemaining = currentExam.timeLimit * 60;
-            examStartTime = new Date(); userAnswers = {}; currentQuestionIndex = 0; weakTopics = [];
-            startTimer(); renderQuestion(); updateProgress();
+            examSelection.style.display = 'none';
+            quizContainer.style.display = 'block';
+            examTitle.textContent = currentExam.title;
+            timeRemaining = currentExam.timeLimit * 60;
+            examStartTime = new Date();
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            weakTopics = [];
+            startTimer();
+            renderQuestion();
+            updateProgress();
+        }
+        
+        function startNewExam() {
+            window.location.reload();
+        }
+
+        function backToHome() {
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            examSelection.style.display = 'block';
+            examCards.forEach(c => c.classList.remove('selected'));
+            startButton.classList.remove('active');
+            startButton.textContent = 'Iniciar Simulado';
+            currentExam = null;
         }
 
         function startTimer() {
             timerInterval = setInterval(() => {
-                timeRemaining--; updateTimerDisplay();
-                if (timeRemaining <= 0) { clearInterval(timerInterval); finishExam(); }
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    finishExam();
+                }
             }, 1000);
         }
 
         function updateTimerDisplay() {
-            const minutes = Math.floor(timeRemaining / 60), seconds = timeRemaining % 60;
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
             timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
@@ -388,7 +368,8 @@
                 html += `<textarea class="essay-textarea" placeholder="Digite sua resposta aqui...">${userAnswers[question.id] || ''}</textarea>`;
             }
             questionContainer.innerHTML = html;
-            questionContainer.classList.remove('fade-in'); setTimeout(() => questionContainer.classList.add('fade-in'), 10);
+            questionContainer.classList.remove('fade-in');
+            setTimeout(() => questionContainer.classList.add('fade-in'), 10);
             if (question.type === 'multipla_escolha') {
                 document.querySelectorAll('.option').forEach(opt => opt.addEventListener('click', () => selectOption(opt)));
             } else {
@@ -450,17 +431,16 @@
             flashcardButton.style.display = 'none'; downloadAnalysisButton.style.display = 'none'; downloadFlashcardsButton.style.display = 'none';
             
             const stats = calculateBasicStats();
-            saveExamResult(stats);
             
             const weakQuestionsSummary = currentExam.questions
                 .filter(q => (q.type === 'multipla_escolha' && userAnswers[q.id] !== String.fromCharCode(65 + q.correct)) || (q.type === 'discursiva' && (!userAnswers[q.id] || userAnswers[q.id].trim() === '')))
-                .map(q => ({ id: q.id, text: q.text.substring(0, 100) + '...' }));
+                .map(q => ({ id: q.id, text: q.text.replace(/<[^>]*>/g, '').substring(0, 100) + '...' }));
             
             const prompt = `Você é um professor especialista em ENADE de Psicologia. Analise o desempenho do aluno:
             - Prova: ${currentExam.title}; Tempo: ${stats.timeSpent} min; Objetivas: ${stats.correctAnswers}/${stats.totalMultipleChoice} (${stats.score}%); Discursivas: ${stats.essayQuestions}/${stats.totalEssayQuestions}.
             - Questões com erro ou não respondidas: ${JSON.stringify(weakQuestionsSummary)}.
             - Respostas discursivas do aluno: ${JSON.stringify(Object.fromEntries(Object.entries(userAnswers).filter(([key]) => key.includes('_D'))))}.
-            Faça uma análise detalhada em HTML: 1. Diagnóstico geral. 2. Pontos fortes (temas dos acertos). 3. Pontos fracos (temas dos erros). 4. Recomendações de estudo personalizadas. 5. Sugestão de rotina de estudo.`;
+            Faça uma análise detalhada em HTML, usando tags como <h3> para títulos e <ul>/<li> para listas: 1. Diagnóstico geral do desempenho. 2. Seus Pontos Fortes (com base nos temas das questões acertadas). 3. Pontos a Melhorar (com base nos temas das questões erradas). 4. Recomendações de estudo personalizadas e diretas.`;
 
             try {
                 const aiAnalysis = await callGemini(prompt);
@@ -479,12 +459,18 @@
                 if (q.type === 'multipla_escolha') {
                     totalMultipleChoice++;
                     const correctAnswer = String.fromCharCode(65 + q.correct);
-                    if (userAnswer === correctAnswer) correctAnswers++;
-                    else weakTopics.push(q.text);
+                    if (userAnswer === correctAnswer) {
+                        correctAnswers++;
+                    } else {
+                        weakTopics.push(q.text.replace(/<[^>]*>/g, '').substring(0, 80));
+                    }
                 } else {
                     totalEssayQuestions++;
-                    if (userAnswer && userAnswer.trim() !== '') essayQuestions++;
-                    else weakTopics.push(q.text);
+                    if (userAnswer && userAnswer.trim() !== '') {
+                        essayQuestions++;
+                    } else {
+                         weakTopics.push(q.text.replace(/<[^>]*>/g, '').substring(0, 80));
+                    }
                 }
             });
             const score = totalMultipleChoice > 0 ? Math.round((correctAnswers / totalMultipleChoice) * 100) : 0;
@@ -500,10 +486,29 @@
                 <div class="score-card"><div class="score-value">${stats.score}%</div><div class="score-label">Aproveitamento</div></div>
                 <div class="score-card"><div class="score-value">${stats.correctAnswers}/${stats.totalMultipleChoice}</div><div class="score-label">Acertos</div></div>
                 <div class="score-card"><div class="score-value">${stats.essayQuestions}/${stats.totalEssayQuestions}</div><div class="score-label">Discursivas</div></div>
-                <div class="score-card"><div class="score-value">${stats.timeSpent}min</div><div class="score-label">Tempo Gasto</div></div>
+                <div class="score-card"><div class="score-value">${stats.timeSpent} min</div><div class="score-label">Tempo Gasto</div></div>
             </div>${aiAnalysis}`;
-            flashcardButton.style.display = 'inline-flex';
+            if (weakTopics.length > 0) {
+                flashcardButton.style.display = 'inline-flex';
+            }
             downloadAnalysisButton.style.display = 'inline-flex';
+        }
+        
+        async function downloadPDF(elementId, filename) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const { jsPDF } = window.jspdf;
+            const canvas = await html2canvas(element, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, imgHeight - 20);
+            pdf.save(`${filename}.pdf`);
         }
 
         async function generateFlashcards() {
@@ -511,45 +516,28 @@
             flashcardButton.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width: 2px; margin: 0 auto;"></div>';
             flashcardsContainer.style.display = 'block';
             const flashcardsContent = document.getElementById('flashcardsContent');
-            flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>'; // CORRIGIDO
+            flashcardsContent.innerHTML = '<div class="spinner"></div><p>Gerando flashcards com base nos seus erros...</p>';
             
-            const prompt = `Você é um especialista em educação. Crie 10 flashcards de estudo com base nos temas das questões que o aluno errou: ${JSON.stringify(weakTopics)}. Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (pergunta ou conceito) e 'flashcard-back' (explicação clara).`;
-
+            const prompt = `Com base nos seguintes tópicos onde um aluno errou em um simulado de psicologia (${weakTopics.join('; ')}), crie exatamente 5 flashcards concisos para estudo. Use o formato: "Frente: [Pergunta/Conceito] Verso: [Resposta/Explicação]". Separe cada flashcard claramente.`;
+            
             try {
-                flashcardsContent.innerHTML = await callGemini(prompt);
+                const response = await callGemini(prompt);
+                let flashcardsHTML = response.split(/Frente:/i).filter(Boolean).map(card => {
+                    const parts = card.split(/Verso:/i);
+                    const front = parts[0] ? parts[0].trim() : 'Não foi possível gerar a frente.';
+                    const back = parts[1] ? parts[1].trim() : 'Não foi possível gerar o verso.';
+                    return `<div class="flashcard"><div class="flashcard-front"><strong>Frente:</strong> ${front}</div><div class="flashcard-back"><strong>Verso:</strong> ${back}</div></div>`;
+                }).join('');
+                flashcardsContent.innerHTML = flashcardsHTML;
                 downloadFlashcardsButton.style.display = 'inline-flex';
-            } catch(error) {
-                console.error("Erro ao gerar flashcards:", error);
-                flashcardsContent.innerHTML = `<p style="color: var(--error-color);">Não foi possível gerar os flashcards. Detalhes: ${error.message}</p>`;
+            } catch (error) {
+                console.error('Erro ao gerar flashcards:', error);
+                flashcardsContent.innerHTML = `<p style="color: var(--error-color);">Não foi possível gerar os flashcards. (${error.message})</p>`;
+            } finally {
+                flashcardButton.disabled = false;
+                flashcardButton.innerHTML = '📇 Gerar Flashcards de Estudo';
             }
-            flashcardButton.style.display = 'none';
         }
-        
-        function saveExamResult(stats) {
-            const result = {
-                id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
-                score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
-            };
-            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            history.unshift(result);
-            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
-        }
-
-        function showHistory() {
-            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            const content = document.getElementById('historyContent');
-            if (history.length === 0) {
-                content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
-            } else {
-                let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
-                history.forEach(r => { table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`; });
-                table += '</tbody></table>'; content.innerHTML = table;
-            }
-            examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
-        }
-
-        function downloadPDF(elementId, filename) {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById(elementId);
-            const button = event.target;
-            const originalTex
+    </script>
+</body>
+</html>
