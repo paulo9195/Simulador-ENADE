@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENADE-Psi 2025 — Plataforma de Estudos com IA DeepSeek</title>
+    <title>ENADE-Psi 2025 — Plataforma de Estudos com IA Gemini</title>
     <!-- Bibliotecas para Geração de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -230,9 +230,9 @@
     </footer>
 
     <script>
-        // --- CONFIGURAÇÃO DA API DEEPSEEK ---
-        const DEEPSEEK_API_KEY = "sk-cf9c84e88bfc4151ad77780478042524";
-        const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+        // --- CONFIGURAÇÃO DA API GEMINI ---
+        const GEMINI_API_KEY = "AIzaSyCysbzil5GfHYmgtPh_ZhYKIeaD5CURQnk";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
         // --- BANCO DE QUESTÕES ---
         const allQuestions = {
@@ -303,9 +303,9 @@
                 ...allQuestions.formacao_geral.filter(q => q.type === 'multipla_escolha'),
                 ...allQuestions.componente_especifico.filter(q => q.type === 'multipla_escolha'),
                 ...allQuestions.pratica_profissional.filter(q => q.type === 'multipla_escolha'),
-                ...allQuestions.formacao_geral.filter(q => q.type === 'discursiva').slice(0, 2),
-                ...allQuestions.componente_especifico.filter(q => q.type === 'discursiva').slice(0, 2),
-                ...allQuestions.pratica_profissional.filter(q => q.type === 'discursiva').slice(0, 2),
+                ...allQuestions.formacao_geral.filter(q => q.type === 'discursiva'),
+                ...allQuestions.componente_especifico.filter(q => q.type === 'discursiva'),
+                ...allQuestions.pratica_profissional.filter(q => q.type === 'discursiva'),
             ]}
         };
         
@@ -410,27 +410,21 @@
         function nextQuestion() { if (currentQuestionIndex < currentExam.questions.length - 1) { currentQuestionIndex++; renderQuestion(); updateProgress(); } }
         function updateProgress() { progressFill.style.width = `${((currentQuestionIndex + 1) / currentExam.questions.length) * 100}%`; }
         
-        async function callDeepSeek(prompt) {
-            const response = await fetch(DEEPSEEK_API_URL, {
+        async function callGemini(prompt) {
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ "role": "user", "content": prompt }]
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
             if (!response.ok) {
                 const errorBody = await response.text();
-                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+                throw new Error(`API Error: ${response.status} - ${errorBody}`);
             }
             const data = await response.json();
-            if (!data.choices || !data.choices[0].message) {
+            if (!data.candidates || !data.candidates[0].content) {
                 throw new Error("Resposta da API em formato inválido ou bloqueada.");
             }
-            return data.choices[0].message.content;
+            return data.candidates[0].content.parts[0].text;
         }
 
         async function getAIHint(button) {
@@ -440,7 +434,7 @@
             hintBox.innerHTML = '<div class="spinner"></div><p>Gerando dica...</p>';
             const prompt = `Sou um estudante de Psicologia. Analise a seguinte questão: "${question.text.replace(/<[^>]*>/g, '')}". Forneça apenas dicas e caminhos de raciocínio, sem entregar a resposta final.`;
             try {
-                hintBox.innerHTML = (await callDeepSeek(prompt)).replace(/\n/g, '<br>');
+                hintBox.innerHTML = (await callGemini(prompt)).replace(/\n/g, '<br>');
             } catch (error) {
                 console.error('Erro ao buscar dica:', error);
                 hintBox.innerHTML = `<p style="color: var(--error-color);">Não foi possível obter a dica. Verifique o console para mais detalhes. (${error.message})</p>`;
@@ -469,7 +463,7 @@
             Faça uma análise detalhada em HTML: 1. Diagnóstico geral. 2. Pontos fortes (temas dos acertos). 3. Pontos fracos (temas dos erros). 4. Recomendações de estudo personalizadas. 5. Sugestão de rotina de estudo.`;
 
             try {
-                const aiAnalysis = await callDeepSeek(prompt);
+                const aiAnalysis = await callGemini(prompt);
                 displayResults(stats, aiAnalysis);
             } catch(error) {
                 console.error("Erro na análise da IA:", error);
@@ -517,81 +511,4 @@
             flashcardButton.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width: 2px; margin: 0 auto;"></div>';
             flashcardsContainer.style.display = 'block';
             const flashcardsContent = document.getElementById('flashcardsContent');
-            flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>';
-            
-            const prompt = `Você é um especialista em educação. Crie 10 flashcards de estudo com base nos temas das questões que o aluno errou: ${JSON.stringify(weakTopics)}. Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (pergunta ou conceito) e 'flashcard-back' (explicação clara).`;
-
-            try {
-                flashcardsContent.innerHTML = await callDeepSeek(prompt);
-                downloadFlashcardsButton.style.display = 'inline-flex';
-            } catch(error) {
-                console.error("Erro ao gerar flashcards:", error);
-                flashcardsContent.innerHTML = `<p style="color: var(--error-color);">Não foi possível gerar os flashcards. Detalhes: ${error.message}</p>`;
-            }
-            flashcardButton.style.display = 'none';
-        }
-        
-        function saveExamResult(stats) {
-            const result = {
-                id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
-                score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
-            };
-            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            history.unshift(result);
-            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
-        }
-
-        function showHistory() {
-            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-            const content = document.getElementById('historyContent');
-            if (history.length === 0) {
-                content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
-            } else {
-                let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
-                history.forEach(r => { table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`; });
-                table += '</tbody></table>'; content.innerHTML = table;
-            }
-            examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
-        }
-
-        function downloadPDF(elementId, filename) {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById(elementId);
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = 'Gerando PDF...'; button.disabled = true;
-
-            html2canvas(element, { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save(`${filename}.pdf`);
-                button.innerHTML = originalText; button.disabled = false;
-            }).catch(err => {
-                console.error("Erro ao gerar PDF:", err);
-                alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
-                button.innerHTML = originalText; button.disabled = false;
-            });
-        }
-
-        function startNewExam() {
-            currentExam = null; clearInterval(timerInterval);
-            resultsContainer.style.display = 'none'; examSelection.style.display = 'block';
-            flashcardsContainer.style.display = 'none'; document.getElementById('flashcardsContent').innerHTML = '';
-            examCards.forEach(card => card.classList.remove('selected'));
-            startButton.classList.remove('active'); startButton.textContent = 'Iniciar Simulado';
-        }
-
-        function backToHome() { startNewExam(); historyContainer.style.display = 'none'; }
-        
-        window.addEventListener('beforeunload', function(e) {
-            if (quizContainer.style.display === 'block' || resultsContainer.style.display === 'block') {
-                const msg = 'Não esqueça de baixar seus resultados e flashcards para continuar estudando! Seu progresso atual será perdido se você sair.';
-                (e || window.event).returnValue = msg; return msg;
-            }
-        });
-    </script>
-</body>
-</html>
+            flashcardsContent.i
