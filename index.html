@@ -511,4 +511,45 @@
             flashcardButton.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width: 2px; margin: 0 auto;"></div>';
             flashcardsContainer.style.display = 'block';
             const flashcardsContent = document.getElementById('flashcardsContent');
-            flashcardsContent.i
+            flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>'; // CORRIGIDO
+            
+            const prompt = `Você é um especialista em educação. Crie 10 flashcards de estudo com base nos temas das questões que o aluno errou: ${JSON.stringify(weakTopics)}. Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (pergunta ou conceito) e 'flashcard-back' (explicação clara).`;
+
+            try {
+                flashcardsContent.innerHTML = await callGemini(prompt);
+                downloadFlashcardsButton.style.display = 'inline-flex';
+            } catch(error) {
+                console.error("Erro ao gerar flashcards:", error);
+                flashcardsContent.innerHTML = `<p style="color: var(--error-color);">Não foi possível gerar os flashcards. Detalhes: ${error.message}</p>`;
+            }
+            flashcardButton.style.display = 'none';
+        }
+        
+        function saveExamResult(stats) {
+            const result = {
+                id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
+                score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
+            };
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            history.unshift(result);
+            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
+        }
+
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            const content = document.getElementById('historyContent');
+            if (history.length === 0) {
+                content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
+            } else {
+                let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
+                history.forEach(r => { table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`; });
+                table += '</tbody></table>'; content.innerHTML = table;
+            }
+            examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
+        }
+
+        function downloadPDF(elementId, filename) {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById(elementId);
+            const button = event.target;
+            const originalTex
