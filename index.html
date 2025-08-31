@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENADE-Psi 2025 — Plataforma de Estudos com IA</title>
+    <title>ENADE-Psi 2025 — Plataforma de Estudos com IA DeepSeek</title>
     <!-- Bibliotecas para Geração de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -121,7 +121,6 @@
         .flashcard-front, .flashcard-back { padding-bottom: 10px; }
         .flashcard-front { font-weight: bold; color: var(--primary-color); border-bottom: 1px dashed var(--border-color); margin-bottom: 10px; }
         footer { text-align: center; padding: 20px; color: white; font-size: 0.9rem; opacity: 0.8; }
-        .pdf-error-message { color: var(--error-color); font-size: 0.9rem; margin-top: 10px; display: none; }
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .header h1 { font-size: 2rem; }
@@ -214,7 +213,6 @@
                     <button id="newExamButton" class="action-button">🔄 Nova Prova</button>
                     <button id="backToHomeButton" class="action-button">🏠 Voltar ao Início</button>
                 </div>
-                <div id="pdfErrorMessage" class="pdf-error-message">Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.</div>
             </div>
             
             <!-- Container do Histórico -->
@@ -228,23 +226,17 @@
         </div>
     </div>
     <footer>
-        <p id="footer-text"></p>
+        <p>© 2025 ENADE-Psi. Todos os direitos reservados. Paulo Henrique Moreira Gonçalves. | Última atualização: 30/08/2025</p>
     </footer>
 
     <script>
-        // --- CONFIGURAÇÃO DA API ---
-        // IMPORTANTE: A chave da API foi removida do código por segurança.
-        // Em um ambiente de produção, a chave nunca deve ser exposta no lado do cliente.
-        // Este ambiente lida com a chave de forma segura.
-        const GEMINI_API_KEY = ""; 
-        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+        // --- CONFIGURAÇÃO DA API DEEPSEEK ---
+        const DEEPSEEK_API_KEY = "sk-cf9c84e88bfc4151ad77780478042524";
+        const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 
         // --- BANCO DE QUESTÕES ---
         const allQuestions = {
             formacao_geral: [
-                { id: "FG_D1", type: "discursiva", text: `<strong>TEXTO 1</strong><br>O Relatório Mundial sobre Desigualdade de Gênero 2023 do Fórum Econômico Mundial aponta que, no ritmo atual, serão necessários 131 anos para atingir a paridade total de gênero. <strong>TEXTO 2</strong><br>No Brasil, a Lei Maria da Penha (Lei nº 11.340/2006) é um marco na luta contra a violência doméstica e familiar, mas os índices de feminicídio permanecem alarmantes.<br><br>Com base nos textos e em seus conhecimentos, redija um texto dissertativo sobre a persistência da desigualdade de gênero na sociedade brasileira, abordando: a) a relação entre desigualdade estrutural e violência contra a mulher; b) o papel da educação na desconstrução de estereótipos de gênero.` },
-                { id: "FG_D2", type: "discursiva", text: `A disseminação de notícias falsas (fake news) tornou-se um dos maiores desafios para as democracias contemporâneas. Analise o fenômeno das fake news, considerando: a) os mecanismos psicossociais que contribuem para sua propagação (viés de confirmação, bolhas informacionais); b) as consequências para o debate público e a confiança nas instituições.` },
-                { id: "FG_D3", type: "discursiva", text: `O Brasil possui uma das maiores biodiversidades do planeta, mas enfrenta graves desafios ambientais, como o desmatamento na Amazônia. Discorra sobre a importância do desenvolvimento sustentável, explicando: a) o conceito de sustentabilidade, articulando as dimensões ambiental, social e econômica; b) duas ações para promover a conservação ambiental.` },
                 { id: "FG_M1", type: "multipla_escolha", text: `A Declaração Universal dos Direitos Humanos (1948) estabelece que "todos os seres humanos nascem livres e iguais em dignidade e em direitos". No contexto brasileiro, qual dos seguintes desafios representa uma violação direta desse princípio?`, options: ["A alta carga tributária.", "A desigualdade racial e social.", "A burocracia para novas empresas.", "A polarização política.", "A complexidade do sistema eleitoral."], correct: 1 },
                 { id: "FG_M2", type: "multipla_escolha", text: `O conceito de "Indústria 4.0" refere-se à quarta revolução industrial. Qual das seguintes opções é uma consequência social direta dessa revolução?`, options: ["Aumento da produção agrícola familiar.", "Valorização de profissões manuais.", "A necessidade de requalificação profissional.", "Diminuição do uso da internet.", "O fim da automação."], correct: 2 },
                 { id: "FG_M3", type: "multipla_escolha", text: `O princípio da equidade no SUS visa:`, options: ["Oferecer o mesmo tratamento para todos.", "Priorizar hospitais privados.", "Diminuir as desigualdades, investindo mais onde a carência é maior.", "Limitar o acesso de estrangeiros.", "Cobrar pelos serviços de acordo com a renda."], correct: 2 },
@@ -260,11 +252,10 @@
                 { id: "FG_M13", type: "multipla_escolha", text: `O Objetivo de Desenvolvimento Sustentável (ODS) "Educação de Qualidade" implica:`, options: ["Garantir que todos completem o ensino primário.", "Assegurar educação inclusiva, equitativa e de qualidade para todos.", "Focar exclusivamente em ciências e matemática.", "Privatizar todo o sistema educacional.", "Reduzir o salário dos professores."], correct: 1 },
                 { id: "FG_M14", type: "multipla_escolha", text: `Uma solução sustentável para o desafio da mobilidade urbana nas metrópoles brasileiras envolve:`, options: ["Incentivar o transporte individual motorizado.", "Priorizar transporte público de qualidade, ciclovias e pedestres.", "Aumentar o preço dos combustíveis sem alternativas.", "Restringir a circulação de pessoas no centro.", "Construir mais estacionamentos."], correct: 1 },
                 { id: "FG_M15", type: "multipla_escolha", text: `O que caracteriza um Estado Democrático de Direito?`, options: ["Poder concentrado em um único líder.", "Soberania popular, império da lei e respeito aos direitos fundamentais.", "Ausência de leis.", "Submissão do judiciário ao executivo.", "Eleições sem garantias de liberdade."], correct: 1 },
+                { id: "FG_D1", type: "discursiva", text: `<strong>TEXTO 1</strong><br>O Relatório Mundial sobre Desigualdade de Gênero 2023 do Fórum Econômico Mundial aponta que, no ritmo atual, serão necessários 131 anos para atingir a paridade total de gênero. <strong>TEXTO 2</strong><br>No Brasil, a Lei Maria da Penha é um marco na luta contra a violência doméstica, mas os índices de feminicídio permanecem alarmantes.<br><br>Com base nos textos, disserte sobre a persistência da desigualdade de gênero no Brasil, abordando: a) a relação entre desigualdade estrutural e violência; b) o papel da educação na desconstrução de estereótipos.` },
+                { id: "FG_D2", type: "discursiva", text: `A disseminação de notícias falsas (fake news) é um desafio para as democracias. Analise o fenômeno, considerando: a) os mecanismos psicossociais que contribuem para sua propagação (viés de confirmação, bolhas informacionais); b) as consequências para o debate público e a confiança nas instituições.` },
             ],
             componente_especifico: [
-                { id: "CE_D1", type: "discursiva", text: `Um paciente de 35 anos busca terapia com queixas de ansiedade social e pensamentos de que será julgado negativamente. Descreva como a Terapia Cognitivo-Comportamental (TCC) abordaria este caso, explicando: a) o modelo cognitivo do transtorno; b) duas técnicas que poderiam ser utilizadas.` },
-                { id: "CE_D2", type: "discursiva", text: `Diferencie, do ponto de vista da psicopatologia psicanalítica, as estruturas da neurose e da psicose. Aborde: a) a relação do sujeito com a realidade em cada estrutura; b) o principal mecanismo de defesa associado a cada uma (recalque e foraclusão).` },
-                { id: "CE_D3", type: "discursiva", text: `O processo de Avaliação Psicológica vai além da aplicação de testes. Descreva as etapas de um processo de avaliação, desde a demanda inicial até a devolutiva, e explique a importância do uso de múltiplas fontes de informação.` },
                 { id: "CE_M1", type: "multipla_escolha", text: `No Behaviorismo Radical, um comportamento fortalecido pela remoção de um estímulo aversivo é exemplo de:`, options: ["Reforço positivo.", "Punição positiva.", "Punição negativa.", "Reforço negativo.", "Extinção."], correct: 3 },
                 { id: "CE_M2", type: "multipla_escolha", text: `Segundo Piaget, a capacidade de pensar de forma abstrata e hipotético-dedutiva é característica do estágio:`, options: ["Sensório-motor.", "Pré-operatório.", "Operatório concreto.", "Operatório formal.", "Pós-formal."], correct: 3 },
                 { id: "CE_M3", type: "multipla_escolha", text: `A validade de um teste psicológico refere-se:`, options: ["À consistência dos seus resultados.", "À padronização de sua aplicação.", "Ao grau em que o teste mede o que se propõe a medir.", "À existência de normas de referência.", "À facilidade de aplicação."], correct: 2 },
@@ -280,11 +271,10 @@
                 { id: "CE_M13", type: "multipla_escolha", text: `A memória que se refere a fatos e conhecimentos gerais sobre o mundo é chamada de:`, options: ["Memória episódica.", "Memória semântica.", "Memória de procedimento.", "Memória de trabalho.", "Memória sensorial."], correct: 1 },
                 { id: "CE_M14", type: "multipla_escolha", text: `A abordagem sistêmica entende o sintoma de um indivíduo como:`, options: ["Expressão de um conflito intrapsíquico.", "Comportamento aprendido a ser extinto.", "Manifestação de uma disfunção no sistema familiar.", "Distorção cognitiva a ser reestruturada.", "Problema biológico isolado."], correct: 2 },
                 { id: "CE_M15", type: "multipla_escolha", text: `Qual processo é um exemplo de condicionamento clássico (pavloviano)?`, options: ["Rato pressiona barra para receber comida.", "Criança é elogiada por arrumar o quarto.", "Cão saliva ao som de sineta associada à comida.", "Motorista perde pontos e dirige mais devagar.", "Aluno estuda para evitar nota baixa."], correct: 2 },
+                { id: "CE_D1", type: "discursiva", text: `Um paciente de 35 anos busca terapia com queixas de ansiedade social. Descreva como a Terapia Cognitivo-Comportamental (TCC) abordaria este caso, explicando: a) o modelo cognitivo do transtorno; b) duas técnicas que poderiam ser utilizadas.` },
+                { id: "CE_D2", type: "discursiva", text: `Diferencie, do ponto de vista da psicopatologia psicanalítica, as estruturas da neurose e da psicose, abordando: a) a relação com a realidade; b) o principal mecanismo de defesa (recalque e foraclusão).` },
             ],
             pratica_profissional: [
-                { id: "PP_D1", type: "discursiva", text: `Você é psicólogo(a) em um CRAS e atende uma família cujo filho adolescente apresenta evasão escolar e envolvimento com atos infracionais. Descreva sua proposta de intervenção, considerando: a) a articulação com a rede (escola, Conselho Tutelar); b) uma estratégia de atuação junto à família.` },
-                { id: "PP_D2", type: "discursiva", text: `Como psicólogo(a) hospitalar em oncologia pediátrica, você atende uma criança de 8 anos em cuidados paliativos. Os pais têm dificuldade em falar sobre a morte com a filha. Descreva sua atuação, abordando: a) como facilitaria a comunicação sobre finitude; b) dois cuidados éticos essenciais.` },
-                { id: "PP_D3", type: "discursiva", text: `O RH de uma empresa contrata você para lidar com estresse e conflitos em uma equipe. O gestor é autoritário e focado em metas. Elabore um plano de intervenção em POT, detalhando: a) sua estratégia de diagnóstico; b) uma proposta de intervenção para a liderança e o clima.` },
                 { id: "PP_M1", type: "multipla_escolha", text: `Um psicólogo escolar é informado por um aluno de 14 anos que sofre violência física em casa. Qual a conduta correta?`, options: ["Manter sigilo absoluto.", "Conversar com os pais e pedir que mudem.", "Notificar imediatamente o Conselho Tutelar.", "Aconselhar o aluno a fugir.", "Ignorar a denúncia."], correct: 2 },
                 { id: "PP_M2", type: "multipla_escolha", text: `Ao elaborar um laudo psicológico para fins judiciais, o psicólogo deve:`, options: ["Usar linguagem subjetiva e jargões.", "Apresentar conclusões sobre fatos que não observou.", "Limitar-se a descrever os instrumentos.", "Fundamentar sua análise em métodos reconhecidos e ser claro e objetivo.", "Incluir informações íntimas não relevantes."], correct: 3 },
                 { id: "PP_M3", type: "multipla_escolha", text: `A atuação do psicólogo em um CAPS é pautada pelo cuidado em liberdade. Uma prática condizente é:`, options: ["Focar exclusivamente na medicação.", "Realizar apenas intervenções individuais.", "Construir um Projeto Terapêutico Singular (PTS) com o usuário e sua rede.", "Priorizar a internação psiquiátrica.", "Limitar o atendimento aos casos 'curáveis'."], correct: 2 },
@@ -300,35 +290,26 @@
                 { id: "PP_M13", type: "multipla_escolha", text: `A escuta especializada (Lei nº 13.431/2017) tem o objetivo de:`, options: ["Produzir prova para o processo judicial.", "Garantir a proteção da criança/adolescente, evitando a revitimização.", "Fazer a criança confessar.", "Substituir o processo judicial.", "Realizar psicoterapia."], correct: 1 },
                 { id: "PP_M14", type: "multipla_escolha", text: `Qual ação caracteriza uma intervenção em psicologia comunitária?`, options: ["Psicoterapia individual.", "Aplicação de testes de QI.", "Desenvolvimento de um grupo de mães na comunidade a partir de uma demanda local.", "Treinamento para executivos.", "Diagnóstico e medicalização de problemas."], correct: 2 },
                 { id: "PP_M15", type: "multipla_escolha", text: `O psicólogo do esporte, ao trabalhar com uma equipe, tem como uma de suas principais funções:`, options: ["Selecionar atletas com testes de personalidade.", "Atuar como técnico.", "Desenvolver variáveis psicológicas como concentração, ansiedade e motivação.", "Realizar psicoterapia profunda.", "Garantir a dieta dos atletas."], correct: 2 },
+                { id: "PP_D1", type: "discursiva", text: `Você é psicólogo(a) em um CRAS e atende uma família cujo filho adolescente apresenta evasão escolar e atos infracionais. Descreva sua proposta de intervenção, considerando: a) a articulação com a rede (escola, Conselho Tutelar); b) uma estratégia de atuação junto à família.` },
+                { id: "PP_D2", type: "discursiva", text: `Como psicólogo(a) hospitalar em oncologia pediátrica, você atende uma criança de 8 anos em cuidados paliativos. Os pais têm dificuldade em falar sobre a morte com a filha. Descreva sua atuação, abordando: a) como facilitaria a comunicação sobre finitude; b) dois cuidados éticos.` },
             ]
         };
         
-        const examData = {};
-        Object.keys(allQuestions).forEach(key => {
-            const mc = allQuestions[key].filter(q => q.type === 'multipla_escolha');
-            const d = allQuestions[key].filter(q => q.type === 'discursiva').slice(0, 2);
-            examData[key] = {
-                title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                timeLimit: 60,
-                questions: [...mc, ...d]
-            };
-        });
-        examData['formacao_geral'].title = "Formação Geral";
-        examData['componente_especifico'].title = "Componente Específico";
-        examData['pratica_profissional'].title = "Prática Profissional";
-        examData.prova_completa = {
-            title: "Prova Completa", timeLimit: 120,
-            questions: [
+        const examData = {
+            formacao_geral: { title: "Formação Geral", timeLimit: 60, questions: allQuestions.formacao_geral },
+            componente_especifico: { title: "Componente Específico", timeLimit: 60, questions: allQuestions.componente_especifico },
+            pratica_profissional: { title: "Prática Profissional", timeLimit: 60, questions: allQuestions.pratica_profissional },
+            prova_completa: { title: "Prova Completa", timeLimit: 120, questions: [
                 ...allQuestions.formacao_geral.filter(q => q.type === 'multipla_escolha'),
                 ...allQuestions.componente_especifico.filter(q => q.type === 'multipla_escolha'),
                 ...allQuestions.pratica_profissional.filter(q => q.type === 'multipla_escolha'),
                 ...allQuestions.formacao_geral.filter(q => q.type === 'discursiva').slice(0, 2),
                 ...allQuestions.componente_especifico.filter(q => q.type === 'discursiva').slice(0, 2),
                 ...allQuestions.pratica_profissional.filter(q => q.type === 'discursiva').slice(0, 2),
-            ]
+            ]}
         };
         
-        let currentExam = null, currentQuestionIndex = 0, userAnswers = {}, timeRemaining = 0, timerInterval = null, examStartTime = null, weakTopics = [], lastExamStats = null;
+        let currentExam = null, currentQuestionIndex = 0, userAnswers = {}, timeRemaining = 0, timerInterval = null, examStartTime = null, weakTopics = [];
         
         const examSelection = document.getElementById('examSelection'), quizContainer = document.getElementById('quizContainer'),
               resultsContainer = document.getElementById('resultsContainer'), historyContainer = document.getElementById('historyContainer'),
@@ -338,29 +319,19 @@
               timerEl = document.getElementById('timer'), progressFill = document.getElementById('progressFill'),
               questionCounter = document.getElementById('questionCounter'), examTitle = document.getElementById('examTitle'),
               flashcardButton = document.getElementById('flashcardButton'), downloadAnalysisButton = document.getElementById('downloadAnalysisButton'),
-              downloadFlashcardsButton = document.getElementById('downloadFlashcardsButton'), flashcardsContainer = document.getElementById('flashcardsContainer'),
-              pdfErrorMessage = document.getElementById('pdfErrorMessage');
+              downloadFlashcardsButton = document.getElementById('downloadFlashcardsButton'), flashcardsContainer = document.getElementById('flashcardsContainer');
 
         document.addEventListener('DOMContentLoaded', initializeApp);
 
-        function initializeApp() {
-            setupEventListeners();
-            updateFooter();
-            console.log('ENADE-Psi 2025 Plataforma de Estudos carregada!');
-        }
-        
-        function updateFooter() {
-            const year = new Date().getFullYear();
-            document.getElementById('footer-text').textContent = `© ${year} ENADE-Psi. Todos os direitos reservados. Paulo Henrique Moreira Gonçalves.`;
-        }
+        function initializeApp() { setupEventListeners(); console.log('ENADE-Psi 2025 Plataforma de Estudos carregada!'); }
 
         function setupEventListeners() {
             examCards.forEach(card => card.addEventListener('click', () => selectExam(card)));
             startButton.addEventListener('click', startExam);
             prevButton.addEventListener('click', previousQuestion); nextButton.addEventListener('click', nextQuestion);
             finishButton.addEventListener('click', finishExam);
-            downloadAnalysisButton.addEventListener('click', (e) => downloadPDF('resultsContent', 'analise-enade-psi', e.target));
-            downloadFlashcardsButton.addEventListener('click', (e) => downloadPDF('flashcardsContent', 'flashcards-enade-psi', e.target));
+            downloadAnalysisButton.addEventListener('click', () => downloadPDF('resultsContent', 'analise-enade-psi'));
+            downloadFlashcardsButton.addEventListener('click', () => downloadPDF('flashcardsContent', 'flashcards-enade-psi'));
             document.getElementById('newExamButton').addEventListener('click', startNewExam);
             document.getElementById('backToHomeButton').addEventListener('click', backToHome);
             document.getElementById('historyButton').addEventListener('click', showHistory);
@@ -439,21 +410,27 @@
         function nextQuestion() { if (currentQuestionIndex < currentExam.questions.length - 1) { currentQuestionIndex++; renderQuestion(); updateProgress(); } }
         function updateProgress() { progressFill.style.width = `${((currentQuestionIndex + 1) / currentExam.questions.length) * 100}%`; }
         
-        async function callGemini(prompt) {
-            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        async function callDeepSeek(prompt) {
+            const response = await fetch(DEEPSEEK_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ "role": "user", "content": prompt }]
+                })
             });
             if (!response.ok) {
                 const errorBody = await response.text();
                 throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
             }
             const data = await response.json();
-            if (!data.candidates || !data.candidates[0].content) {
-                console.error("API Response Blocked or Invalid:", JSON.stringify(data));
-                throw new Error("Resposta da API em formato inválido ou bloqueada por filtros de segurança.");
+            if (!data.choices || !data.choices[0].message) {
+                throw new Error("Resposta da API em formato inválido ou bloqueada.");
             }
-            return data.candidates[0].content.parts[0].text;
+            return data.choices[0].message.content;
         }
 
         async function getAIHint(button) {
@@ -461,9 +438,9 @@
             const hintBox = document.getElementById(`aiHintBox-${question.id}`);
             button.disabled = true; hintBox.style.display = 'block';
             hintBox.innerHTML = '<div class="spinner"></div><p>Gerando dica...</p>';
-            const prompt = `Sou um estudante de Psicologia. Analise a seguinte questão do ENADE: "${question.text.replace(/<[^>]*>/g, '')}". Forneça apenas dicas e caminhos de raciocínio, sem entregar a resposta final. Seja conciso e direto.`;
+            const prompt = `Sou um estudante de Psicologia. Analise a seguinte questão: "${question.text.replace(/<[^>]*>/g, '')}". Forneça apenas dicas e caminhos de raciocínio, sem entregar a resposta final.`;
             try {
-                hintBox.innerHTML = (await callGemini(prompt)).replace(/\n/g, '<br>');
+                hintBox.innerHTML = (await callDeepSeek(prompt)).replace(/\n/g, '<br>');
             } catch (error) {
                 console.error('Erro ao buscar dica:', error);
                 hintBox.innerHTML = `<p style="color: var(--error-color);">Não foi possível obter a dica. Verifique o console para mais detalhes. (${error.message})</p>`;
@@ -479,25 +456,24 @@
             flashcardButton.style.display = 'none'; downloadAnalysisButton.style.display = 'none'; downloadFlashcardsButton.style.display = 'none';
             
             const stats = calculateBasicStats();
-            lastExamStats = stats;
             saveExamResult(stats);
             
             const weakQuestionsSummary = currentExam.questions
                 .filter(q => (q.type === 'multipla_escolha' && userAnswers[q.id] !== String.fromCharCode(65 + q.correct)) || (q.type === 'discursiva' && (!userAnswers[q.id] || userAnswers[q.id].trim() === '')))
-                .map(q => ({ id: q.id, text: q.text.replace(/<[^>]*>/g, '').substring(0, 100) + '...' }));
+                .map(q => ({ id: q.id, text: q.text.substring(0, 100) + '...' }));
             
             const prompt = `Você é um professor especialista em ENADE de Psicologia. Analise o desempenho do aluno:
             - Prova: ${currentExam.title}; Tempo: ${stats.timeSpent} min; Objetivas: ${stats.correctAnswers}/${stats.totalMultipleChoice} (${stats.score}%); Discursivas: ${stats.essayQuestions}/${stats.totalEssayQuestions}.
             - Questões com erro ou não respondidas: ${JSON.stringify(weakQuestionsSummary)}.
             - Respostas discursivas do aluno: ${JSON.stringify(Object.fromEntries(Object.entries(userAnswers).filter(([key]) => key.includes('_D'))))}.
-            Faça uma análise detalhada em HTML: 1. Diagnóstico geral do desempenho. 2. Análise dos Pontos Fortes (temas gerais dos acertos). 3. Análise dos Pontos a Melhorar (temas gerais dos erros). 4. Recomendações de estudo personalizadas e acionáveis. 5. Sugestão de uma rotina de estudo semanal. Formate com títulos (h3), parágrafos (p) e listas (ul/li).`;
+            Faça uma análise detalhada em HTML: 1. Diagnóstico geral. 2. Pontos fortes (temas dos acertos). 3. Pontos fracos (temas dos erros). 4. Recomendações de estudo personalizadas. 5. Sugestão de rotina de estudo.`;
 
             try {
-                const aiAnalysis = await callGemini(prompt);
+                const aiAnalysis = await callDeepSeek(prompt);
                 displayResults(stats, aiAnalysis);
             } catch(error) {
-                console.error("Erro na análise do Gemini:", error);
-                displayResults(stats, `<h3 style="color: var(--error-color);">Erro na Análise</h3><p>Ocorreu um erro ao gerar a análise detalhada. Seus resultados básicos foram salvos. Detalhes: ${error.message}</p>`);
+                console.error("Erro na análise da IA:", error);
+                displayResults(stats, `<h3 style="color: var(--error-color);">Erro na Análise</h3><p>Ocorreu um erro ao gerar a análise detalhada. Seus resultados foram salvos. Detalhes: ${error.message}</p>`);
             }
         }
 
@@ -510,11 +486,11 @@
                     totalMultipleChoice++;
                     const correctAnswer = String.fromCharCode(65 + q.correct);
                     if (userAnswer === correctAnswer) correctAnswers++;
-                    else weakTopics.push(q.text.replace(/<[^>]*>/g, ''));
+                    else weakTopics.push(q.text);
                 } else {
                     totalEssayQuestions++;
                     if (userAnswer && userAnswer.trim() !== '') essayQuestions++;
-                    else weakTopics.push(q.text.replace(/<[^>]*>/g, ''));
+                    else weakTopics.push(q.text);
                 }
             });
             const score = totalMultipleChoice > 0 ? Math.round((correctAnswers / totalMultipleChoice) * 100) : 0;
@@ -541,24 +517,12 @@
             flashcardButton.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width: 2px; margin: 0 auto;"></div>';
             flashcardsContainer.style.display = 'block';
             const flashcardsContent = document.getElementById('flashcardsContent');
+            flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>';
             
-            let prompt;
-
-            if (weakTopics.length > 0) {
-                flashcardsContent.innerHTML = '<p>Gerando flashcards com base nos seus pontos fracos...</p>';
-                prompt = `Você é um especialista em educação para o ENADE de Psicologia. Crie o máximo de flashcards de estudo que conseguir (até 15) com base nos temas das questões que o aluno errou: ${JSON.stringify(weakTopics)}. Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (pergunta ou conceito) e 'flashcard-back' (explicação clara e concisa).`;
-            } else {
-                flashcardsContent.innerHTML = '<p>Parabéns pelo excelente resultado! Gerando flashcards com conceitos avançados e estratégias de estudo para aprimoramento...</p>';
-                prompt = `Você é um especialista em educação para o ENADE de Psicologia. O aluno teve um ótimo desempenho na prova de "${currentExam.title}" (Aproveitamento: ${lastExamStats.score}%). Como não houve erros, crie o máximo de flashcards que conseguir (até 15) focados em:
-1. Conceitos fundamentais e avançados da Psicologia relevantes para o ENADE.
-2. Estratégias eficazes de estudo e memorização.
-3. Dicas para resolver questões discursivas e de múltipla escolha com mais eficiência.
-Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (conceito ou estratégia) e 'flashcard-back' (explicação clara e concisa).`;
-            }
+            const prompt = `Você é um especialista em educação. Crie 10 flashcards de estudo com base nos temas das questões que o aluno errou: ${JSON.stringify(weakTopics)}. Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-front' (pergunta ou conceito) e 'flashcard-back' (explicação clara).`;
 
             try {
-                const generatedHtml = await callGemini(prompt);
-                flashcardsContent.innerHTML = generatedHtml;
+                flashcardsContent.innerHTML = await callDeepSeek(prompt);
                 downloadFlashcardsButton.style.display = 'inline-flex';
             } catch(error) {
                 console.error("Erro ao gerar flashcards:", error);
@@ -568,67 +532,46 @@ Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-f
         }
         
         function saveExamResult(stats) {
-            try {
-                const result = {
-                    id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
-                    score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
-                };
-                const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-                history.unshift(result);
-                localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
-            } catch (error) {
-                console.error("Erro ao salvar no localStorage:", error);
-            }
+            const result = {
+                id: Date.now(), examType: currentExam.title, date: new Date().toLocaleString('pt-BR'),
+                score: stats.score, correct: `${stats.correctAnswers}/${stats.totalMultipleChoice}`, timeSpent: stats.timeSpent
+            };
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            history.unshift(result);
+            localStorage.setItem('enade_history', JSON.stringify(history.slice(0, 20)));
         }
 
         function showHistory() {
-            try {
-                const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
-                const content = document.getElementById('historyContent');
-                if (history.length === 0) {
-                    content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
-                } else {
-                    let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
-                    history.forEach(r => { table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`; });
-                    table += '</tbody></table>'; content.innerHTML = table;
-                }
-                examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
-            } catch (error) {
-                console.error("Erro ao ler do localStorage:", error);
-                document.getElementById('historyContent').innerHTML = "<p style='color:var(--error-color)'>Não foi possível carregar o histórico.</p>";
+            const history = JSON.parse(localStorage.getItem('enade_history') || '[]');
+            const content = document.getElementById('historyContent');
+            if (history.length === 0) {
+                content.innerHTML = '<p>Nenhum simulado realizado ainda.</p>';
+            } else {
+                let table = `<table class="history-table"><thead><tr><th>Data</th><th>Prova</th><th>Aproveitamento</th><th>Acertos</th><th>Tempo</th></tr></thead><tbody>`;
+                history.forEach(r => { table += `<tr><td>${r.date}</td><td>${r.examType}</td><td><strong>${r.score}%</strong></td><td>${r.correct}</td><td>${r.timeSpent} min</td></tr>`; });
+                table += '</tbody></table>'; content.innerHTML = table;
             }
+            examSelection.style.display = 'none'; resultsContainer.style.display = 'none'; historyContainer.style.display = 'block';
         }
 
-        function downloadPDF(elementId, filename, button) {
+        function downloadPDF(elementId, filename) {
             const { jsPDF } = window.jspdf;
             const element = document.getElementById(elementId);
+            const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = 'Gerando PDF...'; button.disabled = true;
-            pdfErrorMessage.style.display = 'none';
 
-            html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+            html2canvas(element, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                let heightLeft = pdfHeight;
-                let position = 0;
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pdf.internal.pageSize.getHeight();
-
-                while (heightLeft > 0) {
-                  position = heightLeft - pdfHeight;
-                  pdf.addPage();
-                  pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                  heightLeft -= pdf.internal.pageSize.getHeight();
-                }
-
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save(`${filename}.pdf`);
                 button.innerHTML = originalText; button.disabled = false;
             }).catch(err => {
                 console.error("Erro ao gerar PDF:", err);
-                pdfErrorMessage.style.display = 'block';
-                setTimeout(() => { pdfErrorMessage.style.display = 'none'; }, 5000);
+                alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
                 button.innerHTML = originalText; button.disabled = false;
             });
         }
@@ -644,12 +587,11 @@ Formate a resposta em HTML, usando divs com as classes 'flashcard', 'flashcard-f
         function backToHome() { startNewExam(); historyContainer.style.display = 'none'; }
         
         window.addEventListener('beforeunload', function(e) {
-            if (quizContainer.style.display === 'block') {
-                const msg = 'Seu progresso no simulado atual será perdido se você sair agora. Tem certeza?';
+            if (quizContainer.style.display === 'block' || resultsContainer.style.display === 'block') {
+                const msg = 'Não esqueça de baixar seus resultados e flashcards para continuar estudando! Seu progresso atual será perdido se você sair.';
                 (e || window.event).returnValue = msg; return msg;
             }
         });
     </script>
 </body>
 </html>
-
